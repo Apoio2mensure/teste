@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hub Financeiro — Imóveis & Investimentos</title>
+
+  <!-- Libs -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
+  <!-- ================== DESIGN TOKENS ================== -->
+  <style>
+    :root{
+      --bg:#0f1117;--card:#161822;--card2:#1c1f2e;--border:#252838;
+      --accent:#00d4aa;--accent2:#5b8cf5;--danger:#ef5350;--warn:#f5a623;
+      --text:#e2e4ea;--muted:#7a7f95;--radius:12px;--font:'Segoe UI',system-ui;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:var(--font);background:var(--bg);color:var(--text)}
+
+    /* Layout */
+    header{background:var(--card);border-bottom:1px solid var(--border);padding:16px 24px;display:flex;align-items:center;gap:16px}
+    header h1{font-size:1.2rem}
+    .container{max-width:1300px;margin:auto;padding:24px}
+
+    /* Tabs */
+    .tabs{display:flex;gap:6px;background:var(--card);padding:6px;border-radius:12px;margin-bottom:20px}
+    .tabs button{flex:1;background:none;border:none;color:var(--muted);padding:10px;border-radius:8px;cursor:pointer}
+    .tabs button.active{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}
+    .tab-panel{display:none}
+    .tab-panel.active{display:block}
+
+    /* Cards */
+    .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:18px}
+    .card-title{font-weight:600;margin-bottom:14px}
+
+    /* Export */
+    .export-wrap{margin-left:auto;position:relative}
+    .export-btn{background:var(--card2);border:1px solid var(--border);color:var(--text);padding:8px 14px;border-radius:8px;cursor:pointer}
+    .export-menu{display:none;position:absolute;right:0;top:110%;background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+    .export-menu.open{display:block}
+    .export-menu button{width:100%;padding:10px 14px;background:none;border:none;color:var(--text);text-align:left;cursor:pointer}
+    .export-menu button:hover{background:var(--card2);color:var(--accent)}
+
+    /* Table */
+    table{width:100%;border-collapse:collapse;font-size:.85rem}
+    th,td{padding:8px;border-bottom:1px solid var(--border);text-align:right}
+    th:first-child,td:first-child{text-align:left}
+
+    /* Charts */
+    canvas{max-height:280px}
+
+    @media print{
+      body{background:#fff;color:#222}
+      .tabs,.export-wrap{display:none}
+      .tab-panel{display:block}
+      .card{page-break-inside:avoid}
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>📊 Hub Financeiro Inteligente</h1>
+  <div class="export-wrap">
+    <button class="export-btn" onclick="Export.toggle(event)">📤 Exportar ▾</button>
+    <div class="export-menu" id="exportMenu">
+      <button onclick="Export.pdf()">📄 PDF</button>
+      <button onclick="Export.png()">🖼️ PNG</button>
+      <button data-action="table" onclick="Export.csv()">📊 CSV</button>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="tabs">
+    <button class="active" onclick="Tabs.switch('imoveis')">🏠 Imóveis</button>
+    <button onclick="Tabs.switch('investimentos')">💰 Investimentos</button>
+  </div>
+
+  <!-- ================= IMÓVEIS ================= -->
+  <div class="tab-panel active" id="tab-imoveis">
+
+    <div class="card">
+      <div class="card-title">🏡 Financiamento Imobiliário — Amortização Inteligente</div>
+      <p style="color:var(--muted)">Compare PRICE vs SAC, amortização extra e impacto no prazo.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📄 Tabela de Amortização</div>
+      <table>
+        <thead><tr><th>Mês</th><th>Parcela</th><th>Saldo</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>R$ 2.500</td><td>R$ 297.500</td></tr>
+          <tr><td>2</td><td>R$ 2.500</td><td>R$ 295.000</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📈 Evolução do Saldo</div>
+      <canvas id="chartImovel"></canvas>
+    </div>
+
+  </div>
+
+  <!-- ================= INVESTIMENTOS ================= -->
+  <div class="tab-panel" id="tab-investimentos">
+
+    <div class="card">
+      <div class="card-title">⚖️ Comparador de Renda Fixa</div>
+      <p style="color:var(--muted)">Compare Selic, CDB, LCI/LCA e inflação.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📈 Calculadora de Juros Compostos</div>
+      <p style="color:var(--muted)">Simule aportes mensais, taxa líquida e prazo.</p>
+      <canvas id="chartJuros"></canvas>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- ================== JS MODULAR ================== -->
+<script>
+/* ========= CORE ========= */
+const Core={
+  activeTab:()=>document.querySelector('.tab-panel.active'),
+  hasTable:()=>Core.activeTab()?.querySelector('table')
+}
+
+/* ========= TABS ========= */
+const Tabs={
+  switch(id){
+    document.querySelectorAll('.tab-panel').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active'));
+    document.getElementById('tab-'+id).classList.add('active');
+    event.target.classList.add('active');
+    Export.update();
+  }
+}
+
+/* ========= EXPORT ========= */
+const Export={
+  toggle(e){e.stopPropagation();document.getElementById('exportMenu').classList.toggle('open')},
+  update(){
+    document.querySelectorAll('[data-action="table"]').forEach(b=>{
+      b.style.display=Core.hasTable()?'block':'none'
+    })
+  },
+  png(){html2canvas(Core.activeTab(),{scale:2,backgroundColor:null}).then(c=>{
+    const a=document.createElement('a');a.href=c.toDataURL();a.download='export.png';a.click();
+  })},
+  pdf(){window.print()},
+  csv(){
+    const table=Core.hasTable();if(!table)return;
+    let csv=[];table.querySelectorAll('tr').forEach(r=>{
+      csv.push([...r.children].map(c=>'"'+c.innerText+'"').join(';'))
+    });
+    const b=new Blob([csv.join('\n')]);
+    const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='tabela.csv';a.click();
+  }
+}
+
+/* ========= CHART DEMO ========= */
+new Chart(document.getElementById('chartImovel'),{
+  type:'line',
+  data:{labels:['1','2','3'],datasets:[{label:'Saldo',data:[300000,295000,290000]}]},
+  options:{responsive:true}
+});
+</script>
+</body>
+</html>
