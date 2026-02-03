@@ -349,6 +349,7 @@ body > * { position:relative; z-index:1; }
   .export-wrap, .no-print { display:none !important; }
   .tabs { display:none !important; }
   .tab-panel { display:block !important; animation:none !important; }
+  .wizard-results { display:block !important; }
   .card {
     background:#fff !important;
     border:1px solid #ddd !important;
@@ -402,6 +403,145 @@ body > * { position:relative; z-index:1; }
   }
 }
 .print-header { display:none; }
+
+/* ─── TAB INVESTSACAR ─── */
+
+/* seção com borda esquerda colorida — igual outras tabs */
+.is-section {
+  border-left: 3px solid var(--accent2);
+  padding-left: 18px;
+  margin-bottom: 22px;
+}
+.is-section.green { border-left-color: var(--accent); }
+.is-section-title {
+  font-size: .80rem; font-weight: 700; color: var(--accent2);
+  text-transform: uppercase; letter-spacing: .5px;
+  margin-bottom: 12px;
+}
+.is-section.green .is-section-title { color: var(--accent); }
+
+/* preview pill */
+.is-preview {
+  background: var(--bg-card2); border: 1px solid var(--border);
+  border-radius: 9px; padding: 11px 16px;
+  margin: 14px 0 4px;
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  font-size: .82rem; color: var(--text-muted);
+}
+.is-preview .pval { color: var(--accent); font-weight: 700; font-size: .90rem; }
+.is-preview .psep { color: var(--border); font-size: .9rem; }
+
+/* ciclo counter +/− */
+.is-ciclo-row {
+  display: flex; align-items: center; gap: 14px;
+  margin: 12px 0 6px;
+}
+.is-ciclo-btn {
+  width: 42px; height: 42px; border-radius: 50%;
+  background: var(--bg-card2); border: 2px solid var(--border);
+  color: var(--text); font-size: 1.3rem; font-weight: 700;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: .2s; flex-shrink: 0;
+}
+.is-ciclo-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+.is-ciclo-num {
+  width: 68px; text-align: center;
+  background: var(--bg-input); border: 2px solid var(--border);
+  border-radius: 10px; padding: 8px 0;
+  font-size: 1.55rem; font-weight: 700; color: var(--accent);
+  outline: none; transition: .2s;
+}
+.is-ciclo-num:focus { border-color: var(--accent2); box-shadow: 0 0 0 3px var(--accent2-dim); }
+
+/* btn simular */
+.is-btn-sim {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #fff; border: none; border-radius: 10px;
+  padding: 13px 30px; font-size: .93rem; font-weight: 600;
+  cursor: pointer; transition: .2s;
+  box-shadow: 0 3px 14px rgba(0,212,170,.3);
+  margin-top: 8px;
+}
+.is-btn-sim:hover { opacity: .9; transform: translateY(-1px); }
+
+/* painel explicação JC — colapsável */
+.is-jc-toggle {
+  display: flex; align-items: center; gap: 10px;
+  background: none; border: none;
+  color: var(--accent); font-size: .82rem; font-weight: 600;
+  cursor: pointer; padding: 0; margin-top: 18px;
+  transition: .2s;
+}
+.is-jc-toggle:hover { color: var(--accent2); }
+.is-jc-toggle .arrow { display: inline-block; transition: transform .25s; font-size: .75rem; }
+.is-jc-toggle.open .arrow { transform: rotate(90deg); }
+
+.is-jc-panel {
+  max-height: 0; overflow: hidden;
+  transition: max-height .35s cubic-bezier(.4,0,.2,1);
+}
+.is-jc-panel.open { max-height: 600px; }
+
+.is-jc-box {
+  background: var(--bg-card2);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 10px;
+  padding: 18px 20px;
+  margin-top: 10px;
+}
+.is-jc-box .jc-intro {
+  font-size: .82rem; color: var(--text-muted);
+  line-height: 1.6; margin-bottom: 12px;
+}
+.is-jc-box .jc-intro strong { color: var(--text); }
+.is-jc-box .formula-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 16px;
+  margin: 12px 0;
+  font-family: 'Courier New', monospace;
+  font-size: .84rem;
+  color: var(--accent2);
+  line-height: 1.8;
+}
+.is-jc-box .step-row {
+  display: flex; align-items: flex-start; gap: 10px;
+  margin: 9px 0;
+}
+.is-jc-box .step-num {
+  background: var(--accent-dim); color: var(--accent);
+  font-size: .71rem; font-weight: 700;
+  width: 22px; height: 22px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-top: 1px;
+}
+.is-jc-box .step-text {
+  font-size: .81rem; color: var(--text-muted); line-height: 1.55;
+}
+.is-jc-box .step-text strong { color: var(--text); }
+.is-jc-box .step-text em { font-style: italic; }
+.is-jc-box .jc-exemplo {
+  margin-top: 14px; padding-top: 12px;
+  border-top: 1px solid var(--border);
+  font-size: .81rem; color: var(--text-muted); line-height: 1.6;
+}
+.is-jc-box .jc-exemplo strong { color: var(--text); }
+
+.wiz-restart {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--bg-card2); border: 1px solid var(--border);
+  color: var(--text-muted); padding: 8px 16px; border-radius: 8px;
+  cursor: pointer; font-size: .82rem; font-weight: 600;
+  transition: .2s;
+}
+.wiz-restart:hover { border-color: var(--accent2); color: var(--accent2); }
+
+.wizard-results { display: none; }
+.wizard-results.show { display: block; }
+
 </style>
 </head>
 <body>
@@ -754,85 +894,201 @@ body > * { position:relative; z-index:1; }
 
   <!-- ════════════ TAB: INVESTIR → SACAR → AMORTIZAR ════════════ -->
   <div class="tab-panel" id="tab-investsacar">
-    <div class="card">
-      <div class="card-title"><span class="icon">🔄</span> Investir → Sacar → Amortizar</div>
+    <div class="card" id="wizardCard">
+      <div class="card-title"><span class="icon">🔄</span> Investir → Sacar → Amortizar (Ciclos)</div>
       <p style="font-size:.83rem;color:var(--text-muted);margin-bottom:18px;">
-        <strong style="color:var(--accent);">Fase 1:</strong> você investe um valor mensal na Selic (líquida de IR) durante um período.<br>
-        <strong style="color:var(--accent2);">Fase 2:</strong> saca todo o montante acumulado e usa para amortizar o financiamento de uma vez — reduzindo parcela ou prazo.
+        Estratégia de <strong style="color:var(--accent);">múltiplos ciclos</strong>: investe na Selic durante N meses, saca o montante com <strong style="color:var(--accent);">juros compostos</strong> líquidos e amortiza o financiamento. Cada ciclo reduz o saldo devedor e os juros futuros.
       </p>
 
-      <!-- FASE 1 -->
-      <div style="border-left:3px solid var(--accent);padding-left:18px;margin-bottom:24px;">
-        <div style="font-size:.80rem;font-weight:700;color:var(--accent);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px;">📈 Fase 1 — Investir na Selic</div>
-        <div class="grid grid-2">
-          <div class="input-group">
-            <label>Aporte Mensal (R$)</label>
-            <input type="number" id="isAporte" value="2000" min="0" oninput="calcInvestSacar()">
-            <div class="helper"><span class="ex">ex: 2000 = R$ 2.000,00 por mês</span></div>
-          </div>
-          <div class="input-group">
-            <label>Duração do Investimento (meses)</label>
-            <input type="number" id="isPrazoInv" value="60" min="1" oninput="calcInvestSacar()">
-            <div class="helper"><span class="ex">ex: 60 = investe por 5 anos</span></div>
-          </div>
-          <div class="input-group">
-            <label>Selic (%)</label>
-            <input type="number" id="isSelic" value="14.75" step="0.25" min="0" oninput="calcInvestSacar()">
-            <div class="helper">Digite <strong>só o número</strong><br><span class="ex">ex: 14.75 significa 14,75% ao ano</span></div>
-          </div>
-          <div class="input-group">
-            <label>IR sobre Rendimento (%)</label>
-            <input type="number" id="isIR" value="15" step="1" min="0" max="100" oninput="calcInvestSacar()">
-            <div class="helper">Digite <strong>só o número</strong><br><span class="ex">ex: 15 significa 15% de IR</span></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- FASE 2 -->
-      <div style="border-left:3px solid var(--accent2);padding-left:18px;margin-bottom:24px;">
-        <div style="font-size:.80rem;font-weight:700;color:var(--accent2);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px;">🏦 Fase 2 — Sacar & Amortizar o Financiamento</div>
-        <div class="grid grid-2">
+      <!-- Financiamento -->
+      <div class="is-section">
+        <div class="is-section-title">🏦 Financiamento</div>
+        <div class="grid grid-3">
           <div class="input-group">
             <label>Valor do Financiamento (R$)</label>
-            <input type="number" id="isValorFinanc" value="300000" min="0" oninput="calcInvestSacar()">
+            <input type="number" id="isValorFinanc" value="300000" min="0" oninput="wizPreview1()">
             <div class="helper"><span class="ex">ex: 300000 = R$ 300.000,00</span></div>
           </div>
           <div class="input-group">
-            <label>Taxa do Financiamento (%)</label>
-            <input type="number" id="isTaxaFinanc" value="9.5" step="0.1" min="0" oninput="calcInvestSacar()">
-            <div class="helper">Digite <strong>só o número</strong><br><span class="ex">ex: 9.5 significa 9,50% ao ano</span></div>
+            <label>Taxa do Financiamento (% a.a.)</label>
+            <input type="number" id="isTaxaFinanc" value="9.5" step="0.1" min="0" oninput="wizPreview1()">
+            <div class="helper">Digite <strong>só o número</strong><br><span class="ex">ex: 9.5 = 9,50% ao ano</span></div>
           </div>
           <div class="input-group">
             <label>Prazo do Financiamento (anos)</label>
-            <input type="number" id="isPrazoFinanc" value="30" min="1" oninput="calcInvestSacar()">
-            <div class="helper"><span class="ex">ex: 30 = prazo de 30 anos (360 meses)</span></div>
+            <input type="number" id="isPrazoFinanc" value="30" min="1" oninput="wizPreview1()">
+            <div class="helper"><span class="ex">ex: 30 = prazo de 30 anos</span></div>
           </div>
           <div class="input-group">
             <label>Sistema de Amortização</label>
-            <select id="isSistema" onchange="calcInvestSacar()">
-              <option value="price">PRICE (parcela fixa)</option>
-              <option value="sac">SAC (amortiz. fixa)</option>
+            <select id="isSistema" onchange="wizPreview1()">
+              <option value="price">PRICE — parcela fixa</option>
+              <option value="sac">SAC — amortização fixa</option>
             </select>
+            <div class="helper"><span class="ex">PRICE: parcela constante durante todo o contrato<br>SAC: amortização fixa, parcela cai com o tempo</span></div>
+          </div>
+        </div>
+        <div class="is-preview" id="wizPrev1">
+          <span>📋 Parcela estimada:</span>
+          <span class="pval" id="wizPrevVal1">—</span>
+        </div>
+      </div>
+
+      <!-- Investimento -->
+      <div class="is-section green">
+        <div class="is-section-title">💰 Parâmetros do Investimento</div>
+        <div class="grid grid-3">
+          <div class="input-group">
+            <label>Aporte Mensal (R$)</label>
+            <input type="number" id="isAporte" value="2000" min="0" oninput="wizPreview2()">
+            <div class="helper"><span class="ex">ex: 2000 = R$ 2.000,00/mês</span></div>
+          </div>
+          <div class="input-group">
+            <label>Selic esperada (% a.a.)</label>
+            <input type="number" id="isSelic" value="13.75" step="0.25" min="0" oninput="wizPreview2()">
+            <div class="helper">Digite <strong>só o número</strong><br><span class="ex">ex: 13.75 = 13,75% ao ano</span></div>
+          </div>
+          <div class="input-group">
+            <label>IR sobre Rendimento (%)</label>
+            <input type="number" id="isIR" value="15" step="1" min="0" max="100" oninput="wizPreview2()">
+            <div class="helper"><span class="ex">Incide só sobre o ganho, não sobre o capital</span></div>
+          </div>
+          <div class="input-group">
+            <label>Tipo de Investimento</label>
+            <select id="isTipoInv" onchange="wizPreview2()">
+              <option value="selicLiq">Selic líquido (CDB / LCI)</option>
+            </select>
+            <div class="helper"><span class="ex">Rendimento atrelado à Selic com IR descontado</span></div>
+          </div>
+        </div>
+        <div class="is-preview" id="wizPrev2">
+          <span>📈 Taxa líquida:</span> <span class="pval" id="wizPrevVal2">—</span>
+          <span class="psep">|</span>
+          <span>Montante após 12 meses:</span> <span class="pval" id="wizPrevMontante12">—</span>
+        </div>
+      </div>
+
+      <!-- Ciclos -->
+      <div class="is-section green">
+        <div class="is-section-title">🔄 Ciclos de Investimento</div>
+        <div style="display:flex;align-items:center;gap:24px;flex-wrap:wrap;">
+          <div>
+            <label style="display:block;font-size:.77rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.6px;font-weight:600;margin-bottom:8px;">Quantos ciclos?</label>
+            <div class="is-ciclo-row">
+              <button class="is-ciclo-btn" onclick="wizNumCiclos(-1)">−</button>
+              <input type="number" class="is-ciclo-num" id="isNumCiclos" value="5" min="1" max="30" oninput="wizPreview3()">
+              <button class="is-ciclo-btn" onclick="wizNumCiclos(1)">+</button>
+            </div>
+          </div>
+          <div class="input-group" style="flex:1;min-width:200px;max-width:300px;">
+            <label>Duração de cada ciclo (meses)</label>
+            <input type="number" id="isPrazoInv" value="24" min="1" oninput="wizPreview3()">
+            <div class="helper"><span class="ex">ex: 24 = investe por 2 anos, depois saca e amortiza</span></div>
+          </div>
+        </div>
+        <div class="is-preview" id="wizPrev3">
+          <span>🕐 Total da estratégia:</span>
+          <span class="pval" id="wizPrevCiclosTempo">—</span> <span>meses</span>
+          <span class="psep">|</span>
+          <span class="pval" id="wizPrevCiclosAnos">—</span> <span>anos</span>
+          <span class="psep">|</span>
+          <span>Prazo do financiamento:</span> <strong id="wizPrevPrazoFinanc">—</strong>
+        </div>
+      </div>
+
+      <!-- Explicação JC — colapsável -->
+      <button class="is-jc-toggle" id="jcToggleBtn" onclick="toggleJC()">
+        <span class="arrow">▶</span> Como funciona o cálculo? (Juros Compostos)
+      </button>
+      <div class="is-jc-panel" id="jcPanel">
+        <div class="is-jc-box">
+          <div class="jc-intro">
+            O investimento acumula com <strong>juros compostos</strong>: cada mês o aporte se soma ao saldo anterior e <em>todo</em> o saldo rende novamente.
+            O IR é descontado apenas sobre o <strong>rendimento mensal</strong>, nunca sobre o capital que você depositou.
+          </div>
+
+          <div class="formula-box">
+            Montante<sub>m</sub> = (Montante<sub>m-1</sub> + Aporte) × (1 + i<sub>líq</sub>)
+          </div>
+
+          <div class="step-row">
+            <div class="step-num">1</div>
+            <div class="step-text">
+              <strong>Taxa mensal bruta</strong><br>
+              i<sub>bruto</sub> = (1 + Selic)<sup>1/12</sup> − 1<br>
+              Converte a taxa Selic anual para sua equivalente mensal usando raiz 12ª (não divisão simples).
+            </div>
+          </div>
+          <div class="step-row">
+            <div class="step-num">2</div>
+            <div class="step-text">
+              <strong>Desconta o IR do rendimento</strong><br>
+              i<sub>líq</sub> = i<sub>bruto</sub> × (1 − IR%)<br>
+              O IR incide <em>só sobre o ganho</em> de cada mês. Se você investiu R$ 2.000 e ganhou R$ 20, o IR é sobre os R$ 20.
+            </div>
+          </div>
+          <div class="step-row">
+            <div class="step-num">3</div>
+            <div class="step-text">
+              <strong>Acumulação com juros compostos</strong><br>
+              Mês 1: (0 + 2.000) × (1 + i<sub>líq</sub>)<br>
+              Mês 2: (resultado anterior + 2.000) × (1 + i<sub>líq</sub>)<br>
+              Os juros do mês 1 também rendem no mês 2 — isso é o que torna compostos diferentes de simples.
+            </div>
+          </div>
+          <div class="step-row">
+            <div class="step-num">4</div>
+            <div class="step-text">
+              <strong>Saque e amortização extra</strong><br>
+              No fim do ciclo você saca o montante total e usa para pagar uma parcela extra do financiamento.
+              O saldo devedor cai, e os juros que você pagaria nos meses seguintes caem junto.
+            </div>
+          </div>
+          <div class="step-row">
+            <div class="step-num">5</div>
+            <div class="step-text">
+              <strong>Novo ciclo</strong><br>
+              O financiamento agora tem saldo menor. O próximo ciclo começa do zero no investimento mas com menos dívida — e assim vai até completar todos os ciclos.
+            </div>
+          </div>
+
+          <div class="jc-exemplo">
+            <strong>Exemplo com os valores padrão:</strong> Aporte R$ 2.000/mês, Selic 13,75%, IR 15%.
+            A taxa líquida mensal fica ≈ 0,92%. Em 24 meses de investimento acumula ≈ R$ 53.900.
+            Esse valor vai inteiro para reduzir o saldo do financiamento de R$ 300.000 — economizando milhares em juros ao longo dos anos.
           </div>
         </div>
       </div>
 
-      <!-- KPIs -->
-      <div class="kpi-row">
-        <div class="kpi green"><div class="kpi-label">Montante Acumulado</div><div class="kpi-value" id="isKpiMontante">—</div></div>
-        <div class="kpi blue"><div class="kpi-label">Parcela Original</div><div class="kpi-value" id="isKpiParOrig">—</div></div>
-        <div class="kpi warn"><div class="kpi-label">Nova Parcela</div><div class="kpi-value" id="isKpiParNova">—</div></div>
-        <div class="kpi green"><div class="kpi-label">Novo Prazo</div><div class="kpi-value" id="isKpiPrazoNov">—</div></div>
-        <div class="kpi red"><div class="kpi-label">Economia Total</div><div class="kpi-value" id="isKpiEconomia">—</div></div>
+      <!-- Botão simular -->
+      <div style="margin-top:24px;">
+        <button class="is-btn-sim" onclick="wizFinish()">🚀 Simular Estratégia</button>
       </div>
+    </div>
 
-      <!-- Chart -->
-      <div class="chart-box">
-        <div class="card-title" style="margin-bottom:12px;"><span class="icon">📊</span> Investimento acumulando · Saldo devedor caindo após saque</div>
-        <canvas id="chartInvestSacar"></canvas>
+    <!-- ── RESULTADOS ── -->
+    <div class="wizard-results" id="wizResults">
+      <div class="card">
+        <div class="card-title" style="justify-content:space-between;">
+          <span><span class="icon">📊</span> Resultado da Simulação</span>
+          <button class="wiz-restart" onclick="wizRestart()">🔁 Nova Simulação</button>
+        </div>
+        <div class="kpi-row">
+          <div class="kpi blue"><div class="kpi-label">Parcela Original</div><div class="kpi-value" id="isKpiParOrig">—</div></div>
+          <div class="kpi warn"><div class="kpi-label">Parcela Final</div><div class="kpi-value" id="isKpiParNova">—</div></div>
+          <div class="kpi green"><div class="kpi-label">Total Amortizado (ciclos)</div><div class="kpi-value" id="isKpiMontante">—</div></div>
+          <div class="kpi green"><div class="kpi-label">Prazo Restante</div><div class="kpi-value" id="isKpiPrazoNov">—</div></div>
+          <div class="kpi red"><div class="kpi-label">Economia Total</div><div class="kpi-value" id="isKpiEconomia">—</div></div>
+        </div>
+        <div id="isCicloLog" style="margin:14px 0;font-size:.81rem;color:var(--text-muted);background:var(--bg-card2);border-radius:8px;padding:12px 16px;border:1px solid var(--border);max-height:160px;overflow-y:auto;"></div>
+        <div class="chart-box">
+          <div class="card-title" style="margin-bottom:12px;"><span class="icon">📈</span> Ciclos: Investimento acumulando → saque → saldo devedor caindo</div>
+          <canvas id="chartInvestSacar"></canvas>
+        </div>
       </div>
     </div>
   </div>
+</div>
 
 </div><!-- /container -->
 
@@ -902,12 +1158,29 @@ function _tooltipLabel(ctx) {
   var raw = ctx.parsed;
   var val = (raw !== null && typeof raw === 'object' && 'y' in raw) ? raw.y : raw;
   if (val === null || val === undefined || isNaN(Number(val))) return '';
-  return ' ' + fmtR(val);
+  // doughnut/pie: ctx.label tem nome do slice → inclui para clareza
+  var prefix = ctx.label ? ctx.label + ': ' : '';
+  return prefix + fmtR(val);
 }
 
 // Retorna scales.x NOVO
-function _scaleX(maxTicks) {
-  return { ticks:{ color:'#7a7f95', maxTicksLimit: maxTicks||10, font:{size:11} }, grid:{color:'#252838'} };
+function _scaleX(maxTicks, unit) {
+  // unit: 'meses' (padrão) ou 'anos'
+  const legenda = unit === 'anos' 
+    ? 'A0, A1, A2... = anos'
+    : 'M1, M2, M3... = meses';
+  
+  return {
+    ticks: { color:'#7a7f95', maxTicksLimit: maxTicks||10, font:{size:11} },
+    grid: { color:'#252838' },
+    title: {
+      display: true,
+      text: legenda,
+      color: '#7a7f95',
+      font: { size: 10, style: 'italic' },
+      padding: { top: 8 }
+    }
+  };
 }
 // Retorna scales.y NOVO com callback fresco
 function _scaleY() {
@@ -919,6 +1192,19 @@ function _plugins() {
     legend:  { labels:{ color:'#7a7f95', font:{size:12} } },
     tooltip: { callbacks:{ label: _tooltipLabel } }
   };
+}
+
+
+// ── Taxa líquida correta: IR incide sobre o RENDIMENTO mensal, não sobre a taxa nominal ──
+// iMensBruto = (1 + selic_aa/100)^(1/12) - 1
+// iMensLiq   = iMensBruto * (1 - IR/100)        ← retém IR do rendimento
+// taxa_aa_liq = (1 + iMensLiq)^12 - 1           ← equivalente anual líquido
+function _iMensLiq(selicAA, irPct) {
+  var iBruto = Math.pow(1 + selicAA / 100, 1 / 12) - 1;
+  return iBruto * (1 - irPct / 100);
+}
+function _selicLiqAA(selicAA, irPct) {
+  return (Math.pow(1 + _iMensLiq(selicAA, irPct), 12) - 1) * 100;
 }
 
 // ══════════════════════════════════════════════════════════
@@ -1169,7 +1455,7 @@ function calcComparativo() {
   const cetVal = document.getElementById('cmpCET').value;
   const cet    = cetVal !== '' ? (parseFloat(cetVal) || 0) : juros;
 
-  const selicLiq = selic * (1 - ir / 100);
+  const selicLiq = _selicLiqAA(selic, ir);
   const spread   = selicLiq - cet;
 
   document.getElementById('cmpKpiDiv').textContent    = fmtPct(cet);
@@ -1206,12 +1492,12 @@ function calcComparativo() {
   // Chart: simulação 60 meses com aporte R$1000
   const meses = 60, aporte = 1000;
   const iCet  = Math.pow(1 + cet / 100, 1 / 12) - 1;
-  const iLiq  = Math.pow(1 + selicLiq / 100, 1 / 12) - 1;
+  const iLiq  = _iMensLiq(selic, ir);
   let sInvest = 0, sAmort = 0;
   const dInvest = [], dAmort = [], labels = [];
   for (let m = 1; m <= meses; m++) {
     sInvest = (sInvest + aporte) * (1 + iLiq);
-    sAmort += aporte * (1 + iCet);
+    sAmort = (sAmort + aporte) * (1 + iCet);
     dInvest.push(sInvest);
     dAmort.push(sAmort);
     labels.push('M' + m);
@@ -1248,8 +1534,7 @@ function calcOportunidade() {
   const ir      = parseFloat(document.getElementById('opIR').value) || 15;
   const imovel  = parseFloat(document.getElementById('opImovel').value) || 0;
 
-  const selicLiq = selic * (1 - ir / 100);
-  const iMens   = Math.pow(1 + selicLiq / 100, 1 / 12) - 1;
+  const iMens   = _iMensLiq(selic, ir);
 
   let saldo = 0, totalInv = 0;
   const dados = [0], labels = ['Início'];
@@ -1303,8 +1588,7 @@ function calcAluguel() {
   const ir       = parseFloat(document.getElementById('algIR').value) || 15;
   const reajuste = parseFloat(document.getElementById('algReajuste').value) || 0;
 
-  const selicLiq  = selic * (1 - ir / 100);
-  const iMens    = Math.pow(1 + selicLiq / 100, 1 / 12) - 1;
+  const iMens    = _iMensLiq(selic, ir);
   const iReaj    = Math.pow(1 + reajuste / 100, 1 / 12) - 1;
 
   let saldo = 0, totalInv = 0, totalAlg = 0;
@@ -1312,7 +1596,7 @@ function calcAluguel() {
   const dados = [0], labels = ['0'];
 
   for (let m = 1; m <= 600; m++) {
-    aluguelAtual *= (1 + iReaj);
+    if (m > 1) aluguelAtual *= (1 + iReaj);
     const apoAtual = parcela - aluguelAtual;
     if (apoAtual > 0) { saldo = (saldo + apoAtual) * (1 + iMens); totalInv += apoAtual; }
     totalAlg += aluguelAtual;
@@ -1341,7 +1625,7 @@ function calcAluguel() {
       responsive: true, maintainAspectRatio: true,
       interaction: { mode: 'index', intersect: false },
       plugins: _plugins(),
-      scales: { x: _scaleX(8), y: _scaleY() }
+      scales: { x: _scaleX(8, 'anos'), y: _scaleY() }
     }
   });
 }
@@ -1376,7 +1660,10 @@ function calcQuitar() {
   }
 
   const adicional = parcelaNova - parcelaOrig;
-  const economia  = (parcelaOrig * prazoOrig) - (parcelaNova * prazoNovo);
+  // Economia: usar totalPago das tabelas (correto para SAC onde parcela varia)
+  const tblOrigEcon = sistema === 'price' ? calcPrice(valor, taxaM * 100, prazoOrig) : calcSAC(valor, taxaM * 100, prazoOrig);
+  const tblNovaEcon = sistema === 'price' ? calcPrice(valor, taxaM * 100, prazoNovo) : calcSAC(valor, taxaM * 100, prazoNovo);
+  const economia  = tblOrigEcon[tblOrigEcon.length-1].totalPago - tblNovaEcon[tblNovaEcon.length-1].totalPago;
 
   document.getElementById('qitKpiOrig').textContent  = fmtR(parcelaOrig);
   document.getElementById('qitKpiNova').textContent  = fmtR(parcelaNova);
@@ -1419,117 +1706,236 @@ function calcQuitar() {
 }
 
 // ══════════════════════════════════════════════════════════
+
+// ══════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
+// INVESTSACAR — previews + controles
+// ══════════════════════════════════════════════════════════
+function wizPreview1() {
+  const valor = parseFloat(document.getElementById('isValorFinanc').value) || 0;
+  const taxa  = parseFloat(document.getElementById('isTaxaFinanc').value)  || 0;
+  const prazo = (parseInt(document.getElementById('isPrazoFinanc').value)  || 30) * 12;
+  const sis   = document.getElementById('isSistema').value;
+  if (valor > 0 && prazo > 0 && taxa >= 0) {
+    const i = taxaAnualParaMensal(taxa) / 100;
+    let pmt;
+    if (sis === 'price') {
+      pmt = i === 0 ? valor/prazo : valor*(i*Math.pow(1+i,prazo))/(Math.pow(1+i,prazo)-1);
+    } else {
+      pmt = valor/prazo + valor*i;
+    }
+    document.getElementById('wizPrevVal1').textContent = fmtR(pmt) + (sis==='sac'?' (1º mês)':'');
+  } else {
+    document.getElementById('wizPrevVal1').textContent = '—';
+  }
+}
+
+function wizPreview2() {
+  const selic  = parseFloat(document.getElementById('isSelic').value) || 0;
+  const ir     = parseFloat(document.getElementById('isIR').value)    || 15;
+  const aporte = parseFloat(document.getElementById('isAporte').value)|| 0;
+  const liq    = _selicLiqAA(selic, ir);
+  const iML    = _iMensLiq(selic, ir);
+  document.getElementById('wizPrevVal2').textContent = fmtPct(liq) + ' a.a.';
+  let mont = 0;
+  for (let m = 0; m < 12; m++) mont = (mont + aporte) * (1 + iML);
+  document.getElementById('wizPrevMontante12').textContent = fmtR(mont);
+}
+
+function wizPreview3() {
+  const ciclos     = Math.max(1, parseInt(document.getElementById('isNumCiclos').value) || 1);
+  const prazo      = Math.max(1, parseInt(document.getElementById('isPrazoInv').value)  || 24);
+  const prazoFinanc = parseInt(document.getElementById('isPrazoFinanc').value) || 30;
+  const total      = ciclos * prazo;
+  document.getElementById('wizPrevCiclosTempo').textContent  = total;
+  document.getElementById('wizPrevCiclosAnos').textContent   = (total/12).toFixed(1);
+  document.getElementById('wizPrevPrazoFinanc').textContent  = prazoFinanc + ' anos';
+}
+
+function wizNumCiclos(delta) {
+  const el = document.getElementById('isNumCiclos');
+  let v = (parseInt(el.value) || 1) + delta;
+  el.value = Math.max(1, Math.min(30, v));
+  wizPreview3();
+}
+
+function wizFinish() {
+  // IMPORTANTE: mostra os resultados ANTES de criar o chart
+  // (Chart.js precisa que o canvas esteja visível para calcular dimensões)
+  document.getElementById('wizResults').classList.add('show');
+  // Aguarda o DOM renderizar o canvas visível, depois cria o chart
+  setTimeout(() => {
+    calcInvestSacar();
+    document.getElementById('wizResults').scrollIntoView({ behavior:'smooth', block:'start' });
+  }, 50);
+}
+
+function wizRestart() {
+  document.getElementById('wizResults').classList.remove('show');
+  window.scrollTo({ top: 0, behavior:'smooth' });
+}
+
+function toggleJC() {
+  const btn   = document.getElementById('jcToggleBtn');
+  const panel = document.getElementById('jcPanel');
+  btn.classList.toggle('open');
+  panel.classList.toggle('open');
+}
+
 // TAB: INVESTIR → SACAR → AMORTIZAR
 // ══════════════════════════════════════════════════════════
 let chartInvestSacar = null;
 
 function calcInvestSacar() {
-  // ── Fase 1 inputs ──
-  const aporte    = parseFloat(document.getElementById('isAporte').value)    || 0;
-  const prazoInv  = parseInt(document.getElementById('isPrazoInv').value)    || 60;
-  const selic     = parseFloat(document.getElementById('isSelic').value)     || 0;
-  const ir        = parseFloat(document.getElementById('isIR').value)        || 15;
-
-  // ── Fase 2 inputs ──
+  // ── Inputs ──
+  const aporte      = parseFloat(document.getElementById('isAporte').value)      || 0;
+  const prazociclo  = parseInt(document.getElementById('isPrazoInv').value)      || 24;
+  const numCiclos   = Math.max(1, parseInt(document.getElementById('isNumCiclos').value) || 5);
+  const selic       = parseFloat(document.getElementById('isSelic').value)       || 0;
+  const ir          = parseFloat(document.getElementById('isIR').value)          || 15;
   const valorFinanc = parseFloat(document.getElementById('isValorFinanc').value) || 0;
   const taxaFinanc  = parseFloat(document.getElementById('isTaxaFinanc').value)  || 0;
   const prazoFinanc = (parseInt(document.getElementById('isPrazoFinanc').value)  || 30) * 12;
   const sistema     = document.getElementById('isSistema').value;
 
-  // ── Fase 1: monta o investimento mês a mês ──
-  const selicLiq  = selic * (1 - ir / 100);
-  const iMensLiq  = Math.pow(1 + selicLiq / 100, 1 / 12) - 1;
-  let montante = 0;
-  const serieInv = [0];
-  for (let m = 1; m <= prazoInv; m++) {
-    montante = (montante + aporte) * (1 + iMensLiq);
-    serieInv.push(montante);
-  }
+  if (valorFinanc <= 0 || prazoFinanc < 1) return;
 
-  // ── Fase 2: financiamento original ──
-  const taxaMF = taxaAnualParaMensal(taxaFinanc) / 100;
-  const tblOrig = sistema === 'price'
+  // ── Taxas ──
+  const iMensLiq  = _iMensLiq(selic, ir);                    // taxa mensal líquida do investimento (JC correto)
+  const taxaMF    = taxaAnualParaMensal(taxaFinanc) / 100;   // taxa mensal do financiamento (decimal)
+
+  // ── Baseline: financiamento completo sem estratégia ──
+  const tblBaseline = sistema === 'price'
     ? calcPrice(valorFinanc, taxaMF * 100, prazoFinanc)
     : calcSAC(  valorFinanc, taxaMF * 100, prazoFinanc);
-  const parcelaOrig = tblOrig.length > 0 ? tblOrig[0].parcela : 0;
+  const parcelaOrig = tblBaseline.length > 0 ? tblBaseline[0].parcela : 0;
+  const totalOrig   = tblBaseline.length > 0 ? tblBaseline[tblBaseline.length-1].totalPago : 0;
 
-  // Saldo devedor no momento do saque
-  let saldoNoSaque = valorFinanc;
-  if (prazoInv > 0 && prazoInv <= tblOrig.length) saldoNoSaque = tblOrig[prazoInv - 1].saldo;
-  else if (prazoInv > tblOrig.length)              saldoNoSaque = 0;
+  // ── ENGINE: N ciclos de investir → sacar → amortizar ──
+  // Lógica:
+  //   mGlobal        = meses decorridos na linha do tempo (só sobe)
+  //   saldoDevedor   = saldo atual do financiamento
+  //   Em cada ciclo:
+  //     1) prazo restante do financiamento = prazoFinanc − mGlobal
+  //     2) gera tabela de amortização com saldoDevedor + prazo restante
+  //     3) durante prazoCiclo meses: investe com JC líquido, financiamento anda normal
+  //     4) saca montante → amortiza saldo devedor (sem reduzir prazo)
+  //     5) novo ciclo recalcula tudo com novo saldo e novo prazo restante
+  let saldoDevedor        = valorFinanc;
+  let mGlobal             = 0;
+  let totalAmortExtra     = 0;
+  let totalPagoEstrategia = 0;
 
-  // Aplica montante como amortização extra
-  const saldoApos     = Math.max(saldoNoSaque - montante, 0);
-  const prazoRestante = prazoFinanc - prazoInv;
+  const serieInv = [0];
+  const serieDev = [valorFinanc];
+  const labelsG  = ['0'];
+  let logHtml = '';
 
-  // Nova parcela com saldo reduzido
-  let parcelaNova = 0;
-  if (saldoApos > 0 && prazoRestante > 0) {
-    if (sistema === 'price') {
-      parcelaNova = taxaMF === 0
-        ? saldoApos / prazoRestante
-        : saldoApos * (taxaMF * Math.pow(1+taxaMF, prazoRestante)) / (Math.pow(1+taxaMF, prazoRestante) - 1);
-    } else {
-      parcelaNova = saldoApos / prazoRestante + saldoApos * taxaMF;
+  for (let ciclo = 1; ciclo <= numCiclos; ciclo++) {
+    if (saldoDevedor <= 0.01) break;
+    const prazoRestReal = prazoFinanc - mGlobal;   // prazo real restante do financiamento
+    if (prazoRestReal <= 0) break;
+
+    const mesisDeste = Math.min(prazociclo, prazoRestReal);
+
+    // Tabela de amortização do financiamento com estado atual
+    const tblCiclo = sistema === 'price'
+      ? calcPrice(saldoDevedor, taxaMF * 100, prazoRestReal)
+      : calcSAC(  saldoDevedor, taxaMF * 100, prazoRestReal);
+
+    // Fase A: acumula investimento com JC líquido (aporte mensal)
+    // montante_m = (montante_{m-1} + aporte) × (1 + iMensLiq)  → juros compostos com IR
+    let montante = 0;
+    for (let m = 0; m < mesisDeste; m++) {
+      montante = (montante + aporte) * (1 + iMensLiq);
+      serieInv.push(montante);
+      serieDev.push(m < tblCiclo.length ? tblCiclo[m].saldo : 0);
+      labelsG.push('M' + (mGlobal + m + 1));
+      totalPagoEstrategia += (m < tblCiclo.length ? tblCiclo[m].parcela : 0);
+    }
+    mGlobal += mesisDeste;
+
+    // Saldo devedor após parcelas normais do ciclo
+    saldoDevedor = (mesisDeste > 0 && mesisDeste <= tblCiclo.length)
+      ? tblCiclo[mesisDeste - 1].saldo
+      : 0;
+
+    // Fase B: saca montante e amortiza
+    const amortEste = Math.min(montante, saldoDevedor);
+    saldoDevedor    = Math.max(saldoDevedor - montante, 0);
+    totalAmortExtra += amortEste;
+
+    serieInv.push(0);
+    serieDev.push(saldoDevedor);
+    labelsG.push('M' + mGlobal + '↓');
+
+    logHtml += '<div style="margin-bottom:5px;padding:4px 10px;border-radius:6px;' +
+      'background:' + (saldoDevedor <= 0.01 ? 'rgba(0,212,170,.15)' : 'rgba(91,140,245,.1)') +
+      ';border-left:3px solid ' + (saldoDevedor <= 0.01 ? 'var(--accent)' : 'var(--accent2)') + ';">' +
+      '<strong style="color:var(--accent2);">Ciclo ' + ciclo + '</strong> ' +
+      '· Investiu ' + mesisDeste + 'm · Montante: <strong style="color:var(--accent);">' + fmtR(montante) + '</strong>' +
+      ' · Amortizou: <strong>' + fmtR(amortEste) + '</strong>' +
+      ' · Saldo: <strong style="color:' + (saldoDevedor <= 0.01 ? 'var(--accent)' : 'var(--danger)') + ';">' +
+      (saldoDevedor <= 0.01 ? 'Quitado ✅' : fmtR(saldoDevedor)) + '</strong></div>';
+  }
+
+  // ── Após todos os ciclos: paga o restante no prazo real ──
+  let parcelaFinal = 0;
+  const prazoFinal = prazoFinanc - mGlobal;
+  if (saldoDevedor > 0.01 && prazoFinal > 0) {
+    const tblFinal = sistema === 'price'
+      ? calcPrice(saldoDevedor, taxaMF * 100, prazoFinal)
+      : calcSAC(  saldoDevedor, taxaMF * 100, prazoFinal);
+    parcelaFinal = tblFinal.length > 0 ? tblFinal[0].parcela : 0;
+    totalPagoEstrategia += tblFinal.length > 0 ? tblFinal[tblFinal.length-1].totalPago : 0;
+    for (let m = 0; m < tblFinal.length; m++) {
+      serieInv.push(0);
+      serieDev.push(tblFinal[m].saldo);
+      labelsG.push('M' + (mGlobal + m + 1));
     }
   }
 
-  // Economia total
-  const totalOriginal = tblOrig.length > 0 ? tblOrig[tblOrig.length-1].totalPago : 0;
-  let totalComEstrategia = 0;
-  for (let m = 0; m < Math.min(prazoInv, tblOrig.length); m++) totalComEstrategia += tblOrig[m].parcela;
-  totalComEstrategia += parcelaNova * Math.max(prazoRestante, 0);
-  const economia = totalOriginal - totalComEstrategia;
+  // Economia = o que pagaria sem estratégia − o que pagou com estratégia
+  const economia = totalOrig - totalPagoEstrategia;
+  const prazoRestExibir = prazoFinanc - mGlobal;
 
   // ── KPIs ──
-  document.getElementById('isKpiMontante').textContent  = fmtR(montante);
   document.getElementById('isKpiParOrig').textContent   = fmtR(parcelaOrig);
-  document.getElementById('isKpiParNova').textContent   = saldoApos > 0 ? fmtR(parcelaNova) : 'R$ 0,00 ✅';
-  document.getElementById('isKpiPrazoNov').textContent  = saldoApos > 0
-    ? prazoRestante + ' meses (' + (prazoRestante/12).toFixed(1) + ' a)'
-    : 'Quitado! ✅';
+  document.getElementById('isKpiParNova').textContent   = saldoDevedor <= 0.01 ? 'Quitado! ✅' : fmtR(parcelaFinal);
+  document.getElementById('isKpiMontante').textContent  = fmtR(totalAmortExtra);
+  document.getElementById('isKpiPrazoNov').textContent  = saldoDevedor <= 0.01
+    ? 'Quitado em ' + mGlobal + ' meses (' + (mGlobal/12).toFixed(1) + ' a)'
+    : prazoRestExibir + ' meses (' + (prazoRestExibir/12).toFixed(1) + ' a)';
   document.getElementById('isKpiEconomia').textContent  = economia > 0 ? fmtR(economia) : '—';
+  document.getElementById('isCicloLog').innerHTML       = logHtml || '<em style="color:var(--text-muted)">Sem ciclos.</em>';
 
-  // ── Chart ──
-  // Série verde  = saldo do investimento (sobe fase 1, cai a 0 no saque)
-  // Série vermelha = saldo devedor (desce normal até prazoInv, depois com saldoApos)
-  const tblApos = (saldoApos > 0 && prazoRestante > 0)
-    ? (sistema === 'price' ? calcPrice(saldoApos, taxaMF*100, prazoRestante) : calcSAC(saldoApos, taxaMF*100, prazoRestante))
-    : [];
-
-  const step = Math.max(1, Math.floor(prazoFinanc / 60));
-  const labels = [], dInv = [], dDev = [];
-
-  for (let m = 0; m <= prazoFinanc; m += step) {
-    labels.push(m === 0 ? '0' : 'M' + m);
-
-    // Investimento
-    dInv.push(m <= prazoInv ? (m < serieInv.length ? serieInv[m] : montante) : 0);
-
-    // Devedor
-    if (m <= prazoInv) {
-      dDev.push(m < tblOrig.length ? tblOrig[m].saldo : 0);
-    } else {
-      const mRes = m - prazoInv - 1;
-      if (saldoApos <= 0)                   dDev.push(0);
-      else if (mRes >= 0 && mRes < tblApos.length) dDev.push(tblApos[mRes].saldo);
-      else                                  dDev.push(0);
+  // ── Densifica séries se muito longas ──
+  let dInvF = serieInv, dDevF = serieDev, labF = labelsG;
+  if (serieInv.length > 150) {
+    const step = Math.max(1, Math.floor(serieInv.length / 100));
+    dInvF = []; dDevF = []; labF = [];
+    for (let i = 0; i < serieInv.length; i += step) {
+      dInvF.push(serieInv[i]); dDevF.push(serieDev[i]); labF.push(labelsG[i]);
     }
+    // último ponto sempre
+    dInvF.push(serieInv[serieInv.length-1]);
+    dDevF.push(serieDev[serieDev.length-1]);
+    labF.push(labelsG[labelsG.length-1]);
   }
 
+  // ── Chart ──
   if (chartInvestSacar) chartInvestSacar.destroy();
   chartInvestSacar = new Chart(document.getElementById('chartInvestSacar').getContext('2d'), {
     type: 'line',
     data: {
-      labels,
+      labels: labF,
       datasets: [
-        { label: '💰 Investimento (Fase 1)', data: dInv, borderColor: '#00d4aa', backgroundColor: 'rgba(0,212,170,.1)',  fill: true, tension: .3, pointRadius: 0, borderWidth: 2.5 },
-        { label: '🏦 Saldo Devedor',         data: dDev, borderColor: '#ef5350', backgroundColor: 'rgba(239,83,80,.08)', fill: true, tension: .3, pointRadius: 0, borderWidth: 2.5 }
+        { label: '💰 Investimento (ciclo)', data: dInvF, borderColor: '#00d4aa', backgroundColor: 'rgba(0,212,170,.1)',  fill: true, tension: .25, pointRadius: 0, borderWidth: 2.5 },
+        { label: '🏦 Saldo Devedor',        data: dDevF, borderColor: '#ef5350', backgroundColor: 'rgba(239,83,80,.08)', fill: true, tension: .25, pointRadius: 0, borderWidth: 2.5 }
       ]
     },
     options: {
-      responsive: true,
-      maintainAspectRatio: true,
+      responsive: true, maintainAspectRatio: true,
       interaction: { mode: 'index', intersect: false },
       plugins: _plugins(),
       scales: { x: _scaleX(8), y: _scaleY() }
@@ -1567,39 +1973,46 @@ document.addEventListener('click', () => {
 });
 
 /* ── PDF via window.print() ── */
+// Aplica ou restaura cores nos gráficos SEM remover callbacks
+// print=true → cores claras; print=false → restaura dark
+function _setPrintColors(charts, forPrint) {
+  const tc = forPrint ? '#555'    : '#7a7f95';
+  const gc = forPrint ? '#eee'    : '#252838';
+  const lc = forPrint ? '#333'    : '#7a7f95';
+  charts.forEach(c => {
+    if (!c) return;
+    // scales — apenas cores; callback SEMPRE reforçado para evitar [object Object]
+    if (c.options.scales) {
+      if (c.options.scales.x) { c.options.scales.x.ticks.color = tc; c.options.scales.x.grid.color = gc; }
+      if (c.options.scales.y) {
+        c.options.scales.y.ticks.color = tc;
+        c.options.scales.y.grid.color = gc;
+        c.options.scales.y.ticks.callback = _axisLabel;
+      }
+    }
+    // plugins — tooltip callback e legend SEMPRE reforçados
+    if (!c.options.plugins) c.options.plugins = {};
+    if (!c.options.plugins.tooltip) c.options.plugins.tooltip = {};
+    c.options.plugins.tooltip.callbacks = { label: _tooltipLabel };
+    if (!c.options.plugins.legend) c.options.plugins.legend = {};
+    if (!c.options.plugins.legend.labels) c.options.plugins.legend.labels = {};
+    c.options.plugins.legend.labels.color = lc;
+    c.update();
+  });
+}
 function exportPDF() {
   document.getElementById('exportMenu').classList.remove('open');
-  // Marca data no cabeçalho de impressão
   document.getElementById('printDate').textContent = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-  // Faz todos os gráficos redesenharem com fundo branco para impressão
+  const allCharts = [chartSaldo, chartJuros, chartCompare, chartOportunidade, chartAluguel, chartQuitar, chartInvestSacar];
   Chart.defaults.color = '#333';
-  [chartSaldo, chartJuros, chartCompare, chartOportunidade, chartAluguel, chartQuitar, chartInvestSacar].forEach(c => {
-    if (c) {
-      c.options.scales && c.options.scales.x && (c.options.scales.x.ticks.color = '#555');
-      c.options.scales && c.options.scales.y && (c.options.scales.y.ticks.color = '#555');
-      c.options.scales && c.options.scales.x && (c.options.scales.x.grid.color = '#eee');
-      c.options.scales && c.options.scales.y && (c.options.scales.y.grid.color = '#eee');
-      c.options.plugins && c.options.plugins.legend && (c.options.plugins.legend.labels.color = '#333');
-      c.update();
-    }
-  });
+  _setPrintColors(allCharts, true);
   setTimeout(() => {
     window.print();
-    // Restaura cores dark após impressão
     setTimeout(() => {
       Chart.defaults.color = '#7a7f95';
-      [chartSaldo, chartJuros, chartCompare, chartOportunidade, chartAluguel, chartQuitar, chartInvestSacar].forEach(c => {
-        if (c) {
-          c.options.scales && c.options.scales.x && (c.options.scales.x.ticks.color = '#7a7f95');
-          c.options.scales && c.options.scales.y && (c.options.scales.y.ticks.color = '#7a7f95');
-          c.options.scales && c.options.scales.x && (c.options.scales.x.grid.color = '#252838');
-          c.options.scales && c.options.scales.y && (c.options.scales.y.grid.color = '#252838');
-          c.options.plugins && c.options.plugins.legend && (c.options.plugins.legend.labels.color = '#7a7f95');
-          c.update();
-        }
-      });
-    }, 800);
-  }, 300);
+      _setPrintColors(allCharts, false);
+    }, 600);
+  }, 250);
 }
 
 /* ── PNG: baixa cada gráfico como imagem individual ── */
@@ -1844,7 +2257,10 @@ function downloadFile(name, content, mimeType) {
   calcOportunidade();
   calcAluguel();
   calcQuitar();
-  calcInvestSacar();
+  // InvestSacar: inicia previews
+  wizPreview1();
+  wizPreview2();
+  wizPreview3();
 })();
 </script>
 </body>
