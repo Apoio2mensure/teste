@@ -542,6 +542,105 @@ body > * { position:relative; z-index:1; }
 .wizard-results { display: none; }
 .wizard-results.show { display: block; }
 
+
+/* ─── MENU HAMBURGUER ─── */
+.hamburger-btn {
+  display: none;
+  background: none; border: none;
+  color: var(--text); cursor: pointer;
+  font-size: 1.8rem; padding: 8px;
+  transition: .2s;
+}
+.hamburger-btn:hover { color: var(--accent); }
+
+.hamburger-menu {
+  position: fixed;
+  top: 0; right: -320px;
+  width: 320px; height: 100vh;
+  background: var(--bg-card);
+  border-left: 1px solid var(--border);
+  box-shadow: -4px 0 20px rgba(0,0,0,.5);
+  z-index: 9999;
+  overflow-y: auto;
+  transition: right .3s cubic-bezier(.4,0,.2,1);
+}
+.hamburger-menu.open { right: 0; }
+
+.hamburger-overlay {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,.6);
+  z-index: 9998;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .3s;
+}
+.hamburger-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.hamburger-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px; border-bottom: 1px solid var(--border);
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+}
+.hamburger-header h3 {
+  font-size: 1.1rem; color: #fff; font-weight: 600; margin: 0;
+}
+.hamburger-close {
+  background: none; border: none;
+  color: #fff; font-size: 1.8rem;
+  cursor: pointer; padding: 4px 8px;
+  transition: .2s;
+}
+.hamburger-close:hover { opacity: .8; }
+
+.hamburger-content { padding: 16px 0; }
+
+.menu-category { margin-bottom: 8px; }
+.menu-category-title {
+  padding: 12px 20px;
+  font-size: .75rem; font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  display: flex; align-items: center; gap: 8px;
+}
+
+.menu-subcategory { margin-bottom: 4px; }
+.menu-subcategory-title {
+  padding: 10px 20px 10px 36px;
+  font-size: .82rem; font-weight: 600;
+  color: var(--accent2);
+  display: flex; align-items: center; gap: 8px;
+}
+
+.menu-item {
+  padding: 10px 20px 10px 52px;
+  font-size: .85rem; color: var(--text);
+  background: none; border: none;
+  width: 100%; text-align: left;
+  cursor: pointer; transition: .15s;
+  display: flex; align-items: center; gap: 10px;
+}
+.menu-item:hover {
+  background: var(--bg-card2);
+  color: var(--accent);
+}
+.menu-item.active {
+  background: var(--accent-dim);
+  color: var(--accent);
+  font-weight: 600;
+  border-left: 3px solid var(--accent);
+}
+.menu-item .icon { font-size: 1rem; width: 20px; text-align: center; }
+
+@media(max-width:960px) {
+  .hamburger-btn { display: block; }
+  .tabs { display: none !important; }
+}
+
 </style>
 </head>
 <body>
@@ -569,8 +668,44 @@ body > * { position:relative; z-index:1; }
         <button onclick="exportExcel()"><span class="ico">📗</span> Exportar Excel (tabela)</button>
       </div>
     </div>
+    <button class="hamburger-btn" onclick="toggleHamburger()">☰</button>
   </div>
 </header>
+
+<!-- Hamburger Menu -->
+<div class="hamburger-overlay" id="hamburgerOverlay" onclick="toggleHamburger()"></div>
+<div class="hamburger-menu" id="hamburgerMenu">
+  <div class="hamburger-header">
+    <h3>📊 Menu</h3>
+    <button class="hamburger-close" onclick="toggleHamburger()">×</button>
+  </div>
+  <div class="hamburger-content">
+    <div class="menu-category">
+      <div class="menu-category-title">🏠 Calculadoras</div>
+      <div class="menu-subcategory">
+        <div class="menu-subcategory-title">🏡 Imóveis</div>
+        <button class="menu-item active" onclick="switchTabFromMenu('simulador')">
+          <span class="icon">📋</span> Simulador de Amortização
+        </button>
+        <button class="menu-item" onclick="switchTabFromMenu('comparativo')">
+          <span class="icon">📊</span> Investir vs Amortizar
+        </button>
+        <button class="menu-item" onclick="switchTabFromMenu('oportunidade')">
+          <span class="icon">💡</span> Custo de Oportunidade
+        </button>
+        <button class="menu-item" onclick="switchTabFromMenu('aluguel')">
+          <span class="icon">🏠</span> Aluguel vs Compra
+        </button>
+        <button class="menu-item" onclick="switchTabFromMenu('quitar')">
+          <span class="icon">🎯</span> Quitar em X anos
+        </button>
+        <button class="menu-item" onclick="switchTabFromMenu('investsacar')">
+          <span class="icon">🔄</span> Investir → Sacar → Amortizar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- ════════════ CONTAINER ════════════ -->
 <div class="container">
@@ -1169,7 +1304,7 @@ function _scaleX(maxTicks, unit) {
   const legenda = unit === 'anos' 
     ? 'A0, A1, A2... = anos'
     : 'M1, M2, M3... = meses';
-
+  
   return {
     ticks: { color:'#7a7f95', maxTicksLimit: maxTicks||10, font:{size:11} },
     grid: { color:'#252838' },
@@ -1944,6 +2079,20 @@ function calcInvestSacar() {
 }
 
 // ══════════════════════════════════════════════════════════
+
+// ══════════════════════════════════════════════════════════
+// HAMBURGER MENU
+// ══════════════════════════════════════════════════════════
+function toggleHamburger() {
+  document.getElementById('hamburgerMenu').classList.toggle('open');
+  document.getElementById('hamburgerOverlay').classList.toggle('open');
+}
+
+function switchTabFromMenu(tabId) {
+  toggleHamburger();
+  switchTab(tabId);
+}
+
 // TABS NAVIGATION
 // ══════════════════════════════════════════════════════════
 function switchTab(id) {
@@ -1953,6 +2102,15 @@ function switchTab(id) {
   const map = ['simulador', 'comparativo', 'oportunidade', 'aluguel', 'quitar', 'investsacar'];
   const idx = map.indexOf(id);
   if (idx >= 0) document.querySelectorAll('.tabs button')[idx].classList.add('active');
+  
+  // Sincroniza menu hamburguer
+  document.querySelectorAll('.menu-item').forEach(item => {
+    if (item.onclick && item.onclick.toString().includes("'"+id+"'")) {
+      item.classList.add('active');
+    } else {
+      item.classList.remove('active');
+    }
+  });
 
   if (id === 'comparativo')  calcComparativo();
   if (id === 'oportunidade') calcOportunidade();
