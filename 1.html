@@ -1,0 +1,2646 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Simulador Avançado — Amortização & Investimentos</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+/* ─── TOKENS ─── */
+:root {
+  --bg-base:      #0f1117;
+  --bg-card:      #161822;
+  --bg-card2:     #1c1f2e;
+  --bg-input:     #13151f;
+  --accent:       #00d4aa;
+  --accent-dim:   rgba(0,212,170,.15);
+  --accent2:      #5b8cf5;
+  --accent2-dim:  rgba(91,140,245,.15);
+  --warn:         #f5a623;
+  --warn-dim:     rgba(245,166,35,.15);
+  --danger:       #ef5350;
+  --danger-dim:   rgba(239,83,80,.15);
+  --text:         #e2e4ea;
+  --text-muted:   #7a7f95;
+  --border:       #252838;
+  --radius:       12px;
+  --shadow:       0 4px 24px rgba(0,0,0,.35);
+  --font:         'Segoe UI', system-ui, sans-serif;
+}
+
+/* ─── RESET ─── */
+*, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+html { scroll-behavior:smooth; }
+body {
+  font-family:var(--font);
+  background:var(--bg-base);
+  color:var(--text);
+  min-height:100vh;
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ─── HEADER ─── */
+.header {
+  background:var(--bg-card);
+  border-bottom:1px solid var(--border);
+  padding:18px 28px;
+  display:flex;
+  align-items:center;
+  gap:14px;
+  position:sticky;
+  top:0;
+  z-index:100;
+  backdrop-filter:blur(8px);
+}
+.header .logo-icon {
+  width:40px; height:40px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  border-radius:10px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:20px;
+}
+.header h1 { font-size:1.25rem; font-weight:600; letter-spacing:-.3px; }
+.header .sub { font-size:.78rem; color:var(--text-muted); margin-top:1px; }
+.header-right { margin-left:auto; display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+.selic-badge {
+  background:var(--accent-dim);
+  border:1px solid var(--accent);
+  border-radius:8px;
+  padding:6px 14px;
+  display:flex; align-items:center; gap:8px;
+  font-size:.82rem;
+}
+.selic-badge .label { color:var(--text-muted); }
+.selic-badge .val { color:var(--accent); font-weight:700; font-size:1rem; }
+
+/* ─── EXPORT DROPDOWN ─── */
+.export-wrap { position:relative; }
+.export-btn {
+  background:var(--bg-card2);
+  border:1px solid var(--border);
+  color:var(--text);
+  padding:7px 14px;
+  border-radius:8px;
+  cursor:pointer;
+  font-size:.82rem;
+  font-weight:600;
+  display:flex; align-items:center; gap:6px;
+  transition:.2s;
+}
+.export-btn:hover { border-color:var(--accent); color:var(--accent); }
+.export-menu {
+  position:absolute;
+  top:calc(100% + 6px);
+  right:0;
+  background:var(--bg-card);
+  border:1px solid var(--border);
+  border-radius:10px;
+  box-shadow:0 8px 28px rgba(0,0,0,.45);
+  min-width:210px;
+  z-index:200;
+  overflow:hidden;
+  display:none;
+  animation:fadeDown .2s ease;
+}
+.export-menu.open { display:block; }
+@keyframes fadeDown { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
+.export-menu button {
+  display:flex; align-items:center; gap:10px;
+  width:100%; background:none; border:none;
+  color:var(--text); padding:11px 16px;
+  cursor:pointer; font-size:.83rem; text-align:left;
+  transition:.15s;
+}
+.export-menu button:hover { background:var(--bg-card2); color:var(--accent); }
+.export-menu button .ico { font-size:1rem; width:22px; text-align:center; }
+.export-menu .sep { height:1px; background:var(--border); margin:4px 0; }
+
+/* ─── LAYOUT ─── */
+.container { max-width:1280px; margin:0 auto; padding:24px 20px; }
+
+/* ─── TABS ─── */
+.tabs {
+  display:flex; gap:6px; flex-wrap:wrap;
+  background:var(--bg-card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:6px;
+  margin-bottom:22px;
+}
+.tabs button {
+  flex:1; min-width:100px;
+  background:transparent;
+  border:none;
+  color:var(--text-muted);
+  padding:10px 16px;
+  border-radius:8px;
+  cursor:pointer;
+  font-size:.84rem;
+  font-weight:500;
+  transition:.2s;
+}
+.tabs button:hover { background:var(--bg-card2); color:var(--text); }
+.tabs button.active {
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:#fff;
+  font-weight:600;
+  box-shadow:0 2px 12px rgba(0,212,170,.25);
+}
+
+.tab-panel { display:none; animation:fadeIn .3s ease; }
+.tab-panel.active { display:block; }
+@keyf
+.tab-panel.active { display:block !important; }rames fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+
+/* ─── CARDS ─── */
+.card {
+  background:var(--bg-card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:22px;
+  margin-bottom:18px;
+  box-shadow:var(--shadow);
+}
+.card-title {
+  font-size:.95rem;
+  font-weight:600;
+  margin-bottom:16px;
+  display:flex; align-items:center; gap:8px;
+  color:var(--text);
+}
+.card-title .icon { font-size:1.1rem; }
+
+/* ─── GRID / INPUTS ─── */
+.grid { display:grid; gap:14px; }
+.grid-2 { grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); }
+.grid-3 { grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); }
+
+.input-group label {
+  display:block;
+  font-size:.77rem;
+  color:var(--text-muted);
+  margin-bottom:5px;
+  text-transform:uppercase;
+  letter-spacing:.6px;
+  font-weight:600;
+}
+.input-group input, .input-group select {
+  width:100%;
+  background:var(--bg-input);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:10px 12px;
+  color:var(--text);
+  font-size:.9rem;
+  transition:.2s;
+  outline:none;
+}
+.input-group input:focus, .input-group select:focus {
+  border-color:var(--accent);
+  box-shadow:0 0 0 3px var(--accent-dim);
+}
+.input-group select { appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%237a7f95' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 12px center; padding-right:32px; }
+.input-group .helper { font-size:.72rem; color:var(--text-muted); margin-top:5px; line-height:1.45; }
+.input-group .helper .ex { color:var(--accent); font-weight:600; }
+
+/* ─── KPI BOXES ─── */
+.kpi-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; margin-bottom:18px; }
+.kpi {
+  background:var(--bg-card2);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:14px 16px;
+  text-align:center;
+}
+.kpi .kpi-label { font-size:.72rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:.5px; margin-bottom:4px; }
+.kpi .kpi-value { font-size:1.25rem; font-weight:700; }
+.kpi.green .kpi-value { color:var(--accent); }
+.kpi.blue  .kpi-value { color:var(--accent2); }
+.kpi.warn  .kpi-value { color:var(--warn); }
+.kpi.red   .kpi-value { color:var(--danger); }
+
+/* ─── TABLE ─── */
+.table-wrap { overflow-x:auto; border-radius:10px; border:1px solid var(--border); max-height:420px; }
+table { width:100%; border-collapse:collapse; font-size:.82rem; min-width:600px; }
+thead { background:var(--bg-card2); position:sticky; top:0; z-index:2; }
+thead th {
+  padding:11px 12px;
+  text-align:right;
+  color:var(--text-muted);
+  font-weight:600;
+  font-size:.73rem;
+  text-transform:uppercase;
+  letter-spacing:.5px;
+  border-bottom:1px solid var(--border);
+}
+thead th:first-child { text-align:left; }
+tbody tr { border-bottom:1px solid var(--border); transition:.15s; }
+tbody tr:hover { background:rgba(0,212,170,.04); }
+tbody td { padding:9px 12px; text-align:right; color:var(--text); }
+tbody td:first-child { text-align:left; color:var(--text-muted); font-weight:600; }
+.neg { color:var(--danger); }
+.pos { color:var(--accent); }
+
+/* ─── CHARTS ─── */
+.chart-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(340px,1fr)); gap:18px; }
+.chart-box { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:20px; box-shadow:var(--shadow); }
+.chart-box canvas { max-height:280px; }
+
+/* ─── THERMOMETER ─── */
+.thermo-wrap {
+  background:var(--bg-card2);
+  border-radius:14px;
+  padding:22px;
+  text-align:center;
+  border:1px solid var(--border);
+}
+.thermo-track {
+  position:relative;
+  height:22px;
+  border-radius:11px;
+  background:linear-gradient(to right, var(--accent), var(--warn), var(--danger));
+  margin:18px 0 8px;
+  overflow:visible;
+}
+.thermo-needle {
+  position:absolute;
+  top:-6px;
+  width:34px; height:34px;
+  background:#fff;
+  border:3px solid var(--accent);
+  border-radius:50%;
+  box-shadow:0 3px 10px rgba(0,0,0,.4);
+  transform:translateX(-50%);
+  transition:left .5s cubic-bezier(.4,0,.2,1), border-color .5s;
+  display:flex; align-items:center; justify-content:center;
+  font-size:14px; z-index:2;
+}
+.thermo-labels { display:flex; justify-content:space-between; font-size:.72rem; color:var(--text-muted); padding:0 2px; }
+.thermo-verdict {
+  margin-top:14px;
+  font-size:1.05rem;
+  font-weight:700;
+  padding:10px 20px;
+  border-radius:8px;
+  display:inline-block;
+}
+.thermo-verdict.invest { background:var(--accent-dim); color:var(--accent); border:1px solid var(--accent); }
+.thermo-verdict.amortizar { background:var(--danger-dim); color:var(--danger); border:1px solid var(--danger); }
+.thermo-detail { margin-top:10px; font-size:.83rem; color:var(--text-muted); max-width:520px; margin-left:auto; margin-right:auto; line-height:1.6; }
+
+/* ─── QUITAR RESULT ─── */
+.quitar-result { margin-top:18px; }
+
+/* ─── ERROR ─── */
+.error-msg { color:var(--danger); font-size:.8rem; margin-top:6px; display:none; }
+.error-msg.show { display:block; }
+
+/* ─── SCROLLBAR ─── */
+::-webkit-scrollbar { width:6px; height:6px; }
+::-webkit-scrollbar-track { background:var(--bg-base); }
+::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+::-webkit-scrollbar-thumb:hover { background:var(--text-muted); }
+
+/* ─── RESPONSIVE ─── */
+@media(max-width:640px){
+  .header { flex-wrap:wrap; padding:14px 16px; }
+  .header h1 { font-size:1.05rem; }
+  .header .sub { font-size:.72rem; }
+  .header-right { margin-left:0; width:100%; justify-content:space-between; margin-top:10px; }
+  .selic-badge { font-size:.75rem; padding:5px 10px; }
+  .container { padding:16px 12px; }
+  .card { padding:16px; }
+  .card-title { font-size:.88rem; }
+  .chart-row { grid-template-columns:1fr; }
+  .tabs button { font-size:.78rem; padding:8px 10px; min-width:80px; }
+  .grid-2, .grid-3 { grid-template-columns:1fr; }
+  .kpi-row { grid-template-columns:1fr 1fr; }
+  .input-group label { font-size:.72rem; }
+  .input-group input, .input-group select { font-size:.85rem; padding:9px 10px; }
+  .helper { font-size:.70rem; }
+}
+
+/* ─── SUBTLE NOISE OVERLAY ─── */
+body::before {
+  content:'';
+  position:fixed; inset:0;
+  background:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.03'/%3E%3C/svg%3E");
+  pointer-events:none; z-index:0; opacity:.6;
+}
+body > * { position:relative; z-index:1; }
+
+/* ════════════════════════════════════════════
+   PRINT / PDF STYLES
+   ════════════════════════════════════════════ */
+@media print {
+  body {
+    background:#fff !important;
+    color:#222 !important;
+    font-size:13px;
+    --bg-base:#fff;
+    --bg-card:#fff;
+    --bg-card2:#f5f6f8;
+    --bg-input:#fff;
+    --text:#222;
+    --text-muted:#555;
+    --border:#ddd;
+    --accent:#00a882;
+    --accent2:#3a6dd1;
+    --danger:#d9534f;
+    --warn:#e8a020;
+  }
+  body::before { display:none !important; }
+  .header {
+    background:#fff !important;
+    border-bottom:2px solid #00a882 !important;
+    position:static !important;
+    padding:14px 20px !important;
+  }
+  .export-wrap, .no-print { display:none !important; }
+  .tabs { display:none !important; }
+  .tab-panel { display:block !important; animation:none !important; }
+  .wizard-results { display:block !important; }
+  .card {
+    background:#fff !important;
+    border:1px solid #ddd !important;
+    box-shadow:none !important;
+    page-break-inside:avoid;
+    margin-bottom:20px;
+  }
+  .card-title { color:#222 !important; }
+  .input-group label { color:#555 !important; }
+  .input-group input, .input-group select {
+    background:#f5f6f8 !important;
+    border:1px solid #ccc !important;
+    color:#222 !important;
+  }
+  .kpi { background:#f5f6f8 !important; border:1px solid #ddd !important; }
+  .kpi .kpi-label { color:#555 !important; }
+  .kpi.green .kpi-value { color:#00a882 !important; }
+  .kpi.blue .kpi-value { color:#3a6dd1 !important; }
+  .kpi.warn .kpi-value { color:#e8a020 !important; }
+  .kpi.red .kpi-value { color:#d9534f !important; }
+  thead { background:#f0f1f3 !important; }
+  thead th { color:#555 !important; border-bottom:1px solid #ddd !important; }
+  tbody td { color:#222 !important; }
+  tbody tr { border-bottom:1px solid #eee !important; }
+  .neg { color:#d9534f !important; }
+  .pos { color:#00a882 !important; }
+  .chart-box {
+    background:#fff !important;
+    border:1px solid #ddd !important;
+    box-shadow:none !important;
+    page-break-inside:avoid;
+  }
+  .thermo-wrap { background:#f5f6f8 !important; border:1px solid #ddd !important; }
+  .thermo-verdict.invest { background:rgba(0,168,130,.1) !important; color:#00a882 !important; border-color:#00a882 !important; }
+  .thermo-verdict.amortizar { background:rgba(217,83,79,.1) !important; color:#d9534f !important; border-color:#d9534f !important; }
+  .thermo-detail { color:#555 !important; }
+  .selic-badge { background:rgba(0,168,130,.1) !important; border-color:#00a882 !important; }
+  .selic-badge .label { color:#555 !important; }
+  .selic-badge .val { color:#00a882 !important; }
+  .table-wrap { max-height:none !important; }
+  /* Força gráficos com fundo branco no print */
+  canvas { background:#fff !important; }
+  .print-header {
+    display:block !important;
+    text-align:center;
+    margin-bottom:12px;
+    padding-bottom:10px;
+    border-bottom:1px solid #ddd;
+    font-size:11px;
+    color:#777;
+  }
+}
+.print-header { display:none; }
+
+/* ─── TAB INVESTSACAR ─── */
+
+/* seção com borda esquerda colorida — igual outras tabs */
+.is-section {
+  border-left: 3px solid var(--accent2);
+  padding-left: 18px;
+  margin-bottom: 22px;
+}
+.is-section.green { border-left-color: var(--accent); }
+.is-section-title {
+  font-size: .80rem; font-weight: 700; color: var(--accent2);
+  text-transform: uppercase; letter-spacing: .5px;
+  margin-bottom: 12px;
+}
+.is-section.green .is-section-title { color: var(--accent); }
+
+/* preview pill */
+.is-preview {
+  background: var(--bg-card2); border: 1px solid var(--border);
+  border-radius: 9px; padding: 11px 16px;
+  margin: 14px 0 4px;
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  font-size: .82rem; color: var(--text-muted);
+}
+.is-preview .pval { color: var(--accent); font-weight: 700; font-size: .90rem; }
+.is-preview .psep { color: var(--border); font-size: .9rem; }
+
+/* ciclo counter +/− */
+.is-ciclo-row {
+  display: flex; align-items: center; gap: 14px;
+  margin: 12px 0 6px;
+}
+.is-ciclo-btn {
+  width: 42px; height: 42px; border-radius: 50%;
+  background: var(--bg-card2); border: 2px solid var(--border);
+  color: var(--text); font-size: 1.3rem; font-weight: 700;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: .2s; flex-shrink: 0;
+}
+.is-ciclo-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+.is-ciclo-num {
+  width: 68px; text-align: center;
+  background: var(--bg-input); border: 2px solid var(--border);
+  border-radius: 10px; padding: 8px 0;
+  font-size: 1.55rem; font-weight: 700; color: var(--accent);
+  outline: none; transition: .2s;
+}
+.is-ciclo-num:focus { border-color: var(--accent2); box-shadow: 0 0 0 3px var(--accent2-dim); }
+
+/* btn simular */
+.is-btn-sim {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #fff; border: none; border-radius: 10px;
+  padding: 13px 30px; font-size: .93rem; font-weight: 600;
+  cursor: pointer; transition: .2s;
+  box-shadow: 0 3px 14px rgba(0,212,170,.3);
+  margin-top: 8px;
+}
+.is-btn-sim:hover { opacity: .9; transform: translateY(-1px); }
+
+/* painel explicação JC — colapsável */
+.is-jc-toggle {
+  display: flex; align-items: center; gap: 10px;
+  background: none; border: none;
+  color: var(--accent); font-size: .82rem; font-weight: 600;
+  cursor: pointer; padding: 0; margin-top: 18px;
+  transition: .2s;
+}
+.is-jc-toggle:hover { color: var(--accent2); }
+.is-jc-toggle .arrow { display: inline-block; transition: transform .25s; font-size: .75rem; }
+.is-jc-toggle.open .arrow { transform: rotate(90deg); }
+
+.is-jc-panel {
+  max-height: 0; overflow: hidden;
+  transition: max-height .35s cubic-bezier(.4,0,.2,1);
+}
+.is-jc-panel.open { max-height: 600px; }
+
+.is-jc-box {
+  background: var(--bg-card2);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 10px;
+  padding: 18px 20px;
+  margin-top: 10px;
+}
+.is-jc-box .jc-intro {
+  font-size: .82rem; color: var(--text-muted);
+  line-height: 1.6; margin-bottom: 12px;
+}
+.is-jc-box .jc-intro strong { color: var(--text); }
+.is-jc-box .formula-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 16px;
+  margin: 12px 0;
+  font-family: 'Courier New', monospace;
+  font-size: .84rem;
+  color: var(--accent2);
+  line-height: 1.8;
+}
+.is-jc-box .step-row {
+  display: flex; align-items: flex-start; gap: 10px;
+  margin: 9px 0;
+}
+.is-jc-box .step-num {
+  background: var(--accent-dim); color: var(--accent);
+  font-size: .71rem; font-weight: 700;
+  width: 22px; height: 22px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-top: 1px;
+}
+.is-jc-box .step-text {
+  font-size: .81rem; color: var(--text-muted); line-height: 1.55;
+}
+.is-jc-box .step-text strong { color: var(--text); }
+.is-jc-box .step-text em { font-style: italic; }
+.is-jc-box .jc-exemplo {
+  margin-top: 14px; padding-top: 12px;
+  border-top: 1px solid var(--border);
+  font-size: .81rem; color: var(--text-muted); line-height: 1.6;
+}
+.is-jc-box .jc-exemplo strong { color: var(--text); }
+
+.wiz-restart {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--bg-card2); border: 1px solid var(--border);
+  color: var(--text-muted); padding: 8px 16px; border-radius: 8px;
+  cursor: pointer; font-size: .82rem; font-weight: 600;
+  transition: .2s;
+}
+.wiz-restart:hover { border-color: var(--accent2); color: var(--accent2); }
+
+.wizard-results { display: none; }
+.wizard-results.show { display: block; }
+
+
+/* ─── MENU HAMBURGUER ─── */
+.hamburger-btn {
+  display: none;
+  background: none; border: none;
+  color: var(--text); cursor: pointer;
+  font-size: 1.8rem; padding: 8px;
+  transition: .2s;
+}
+.hamburger-btn:hover { color: var(--accent); }
+
+.hamburger-menu {
+  position: fixed;
+  top: 0; right: -320px;
+  width: 320px; height: 100vh;
+  background: var(--bg-card);
+  border-left: 1px solid var(--border);
+  box-shadow: -4px 0 20px rgba(0,0,0,.5);
+  z-index: 9999;
+  overflow-y: auto;
+  transition: right .3s cubic-bezier(.4,0,.2,1);
+}
+.hamburger-menu.open { right: 0; }
+
+.hamburger-overlay {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,.6);
+  z-index: 9998;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .3s;
+}
+.hamburger-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.hamburger-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px; border-bottom: 1px solid var(--border);
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+}
+.hamburger-header h3 {
+  font-size: 1.1rem; color: #fff; font-weight: 600; margin: 0;
+}
+.hamburger-close {
+  background: none; border: none;
+  color: #fff; font-size: 1.8rem;
+  cursor: pointer; padding: 4px 8px;
+  transition: .2s;
+}
+.hamburger-close:hover { opacity: .8; }
+
+.hamburger-content { padding: 16px 0; }
+
+.menu-category { margin-bottom: 8px; }
+.menu-category-title {
+  padding: 12px 20px;
+  font-size: .75rem; font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  display: flex; align-items: center; gap: 8px;
+}
+
+.menu-subcategory { margin-bottom: 4px; }
+.menu-subcategory-title {
+  padding: 10px 20px 10px 36px;
+  font-size: .82rem; font-weight: 600;
+  color: var(--accent2);
+  display: flex; align-items: center; gap: 8px;
+}
+
+.menu-item {
+  padding: 10px 20px 10px 52px;
+  font-size: .85rem; color: var(--text);
+  background: none; border: none;
+  width: 100%; text-align: left;
+  cursor: pointer; transition: .15s;
+  display: flex; align-items: center; gap: 10px;
+}
+.menu-item:hover {
+  background: var(--bg-card2);
+  color: var(--accent);
+}
+.menu-item.active {
+  background: var(--accent-dim);
+  color: var(--accent);
+  font-weight: 600;
+  border-left: 3px solid var(--accent);
+}
+.menu-item .icon { font-size: 1rem; width: 20px; text-align: center; }
+
+@media(max-width:960px) {
+  .hamburger-btn { display: block; }
+  .tabs { display: none !important; }
+}
+
+</style>
+</head>
+<body>
+
+<!-- ════════════ HEADER ════════════ -->
+<header class="header">
+  <div class="logo-icon">📊</div>
+  <div>
+    <h1>Simulador Avançado de Amortização</h1>
+    <div class="sub">Investimentos · Comparativos · Análise Financeira</div>
+  </div>
+  <div class="header-right">
+    <div class="selic-badge">
+      <span class="label">Selic (média 5a):</span>
+      <span class="val" id="selicBadge">—</span>
+    </div>
+    <!-- Export Dropdown -->
+    <div class="export-wrap">
+      <button class="export-btn" onclick="toggleExportMenu(event)">📤 Exportar ▾</button>
+      <div class="export-menu" id="exportMenu">
+        <button onclick="exportPDF()"><span class="ico">📄</span> Exportar PDF (impressão)</button>
+        <button onclick="exportPNG()"><span class="ico">🖼️</span> Exportar PNG (gráficos)</button>
+        <div class="sep"></div>
+        <button onclick="exportCSV()"><span class="ico">📊</span> Exportar CSV (tabela)</button>
+        <button onclick="exportExcel()"><span class="ico">📗</span> Exportar Excel (tabela)</button>
+      </div>
+    </div>
+    <button class="hamburger-btn" onclick="toggleHamburger()">☰</button>
+  </div>
+</header>
+
+<!-- Hamburger Menu -->
+<div class="hamburger-overlay" id="hamburgerOverlay" onclick="toggleHamburger()"></div>
+<div class="hamburger-menu" id="hamburgerMenu">
+  <div class="hamburger-header">
+    <h3>📊 Menu</h3>
+    <button class="hamburger-close" onclick="toggleHamburger()">×</button>
+  </div>
+  <div class="hamburger-content">
+    <div class="menu-category">
+      <div class="menu-category-title">🏠 Calculadoras</div>
+      <div class="menu-subcategory">
+        <div class="menu-subcategory-title">🏡 Imóveis</div>
+        <button class="menu-item active" onclick="switchTabFromMenu('simulador')">
+          <span class="icon">📋</span> Simulador de Amortização
+        </button>
+        <button class="menu-item" onclick="switchTabFromMenu('comparativo')">
+          <span class="icon">📊</span> Investir vs Amortizar
+        </button>
+        <button class="menu-item" onclick="switchTabFromMenu('oportunidade')">
+          <span class="icon">💡</span> Custo de Oportunidade
+        </button>
+        <button class="menu-item" onclick="switchTabFromMenu('aluguel')">
+          <span class="icon">🏠</span> Aluguel vs Compra
+        </button>
+        <button class="menu-item" onclick="switchTabFromMenu('quitar')">
+          <span class="icon">🎯</span> Quitar em X anos
+        </button>
+        <button class="menu-item" onclick="switchTabFromMenu('investsacar')">
+          <span class="icon">🔄</span> Investir → Sacar → Amortizar
+        </button>
+      </div>
+      
+      <div class="menu-subcategory">
+        <div class="menu-subcategory-title">📈 Investimentos</div>
+        <button class="menu-item" onclick="switchTabFromMenu('juroscompostos')">
+          <span class="icon">🧮</span> Juros Compostos
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ CONTAINER ════════════ -->
+<div class="container">
+
+  <!-- Print-only header -->
+  <div class="print-header" id="printHeader">Simulador de Amortização & Investimentos — Exportado em <span id="printDate"></span></div>
+
+  <!-- ── TABS ── -->
+  <div class="tabs no-print">
+    <button class="active" onclick="switchTab('simulador')">📋 Simulador</button>
+    <button onclick="switchTab('comparativo')">📊 Investir vs Amortizar</button>
+    <button onclick="switchTab('oportunidade')">💡 Custo de Oportunidade</button>
+    <button onclick="switchTab('aluguel')">🏠 Aluguel vs Compra</button>
+    <button onclick="switchTab('quitar')">🎯 Quitar em X anos</button>
+    <button onclick="switchTab('investsacar')">🔄 Investir → Sacar</button>
+    <button onclick="switchTab('juroscompostos')">🧮 Juros Compostos</button>
+  </div>
+
+  <!-- ════════════ TAB: SIMULADOR ════════════ -->
+  <div class="tab-panel active" id="tab-simulador">
+
+    <!-- Inputs Principais -->
+    <div class="card">
+      <div class="card-title"><span class="icon">⚙️</span> Parâmetros do Financiamento</div>
+      <div class="grid grid-3">
+        <div class="input-group">
+          <label>Valor do Financiamento (R$)</label>
+          <input type="number" id="valorFinanc" value="300000" min="0" oninput="calcular()">
+        </div>
+        <div class="input-group">
+          <label>Taxa de Juros Anual (%)</label>
+          <input type="number" id="taxaAnual" value="9.5" step="0.1" min="0" oninput="syncTaxas('anual')">
+          <div class="helper" id="taxaMensalHelper">Digite <strong>só o número</strong><br><span class="ex">ex: 9.5 significa 9,50% ao ano</span></div>
+        </div>
+        <div class="input-group">
+          <label>Taxa de Juros Mensal (%)</label>
+          <input type="number" id="taxaMensal" value="" step="0.01" min="0" oninput="syncTaxas('mensal')">
+          <div class="helper">Calculado automaticamente pela taxa anual<br><span class="ex">ex: 0.76 significa 0,76% ao mês</span></div>
+        </div>
+        <div class="input-group">
+          <label>Prazo (anos)</label>
+          <input type="number" id="prazoAnos" value="30" min="1" max="60" oninput="syncPrazo('anos')">
+        </div>
+        <div class="input-group">
+          <label>Prazo (meses)</label>
+          <input type="number" id="prazoMeses" value="360" min="12" oninput="syncPrazo('meses')">
+        </div>
+        <div class="input-group">
+          <label>Sistema de Amortização</label>
+          <select id="sistema" onchange="calcular()">
+            <option value="price">Tabela PRICE</option>
+            <option value="sac">Tabela SAC</option>
+            <option value="ambos">Ambos (comparativo)</option>
+          </select>
+        </div>
+      </div>
+      <span class="error-msg" id="errMain">⚠️ Valores inválidos. Verifique os campos.</span>
+    </div>
+
+    <!-- Amortização Extra -->
+    <div class="card">
+      <div class="card-title"><span class="icon">➕</span> Amortização Extra</div>
+      <div class="grid grid-3">
+        <div class="input-group">
+          <label>Valor Extra (R$ / mês)</label>
+          <input type="number" id="valorExtra" value="0" min="0" oninput="calcular()">
+        </div>
+        <div class="input-group">
+          <label>Tipo de Extra</label>
+          <select id="tipoExtra" onchange="calcular()">
+            <option value="recorrente">Recorrente (todo mês)</option>
+            <option value="unica">Única (1º mês)</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label>Efeito da Extra</label>
+          <select id="efeito" onchange="calcular()">
+            <option value="prazo">Reduzir Prazo</option>
+            <option value="parcela">Reduzir Parcela</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpi-row" id="kpiRow">
+      <div class="kpi green"><div class="kpi-label">Parcela</div><div class="kpi-value" id="kpiParcela">—</div></div>
+      <div class="kpi blue"><div class="kpi-label">Total Pago</div><div class="kpi-value" id="kpiTotal">—</div></div>
+      <div class="kpi warn"><div class="kpi-label">Total em Juros</div><div class="kpi-value" id="kpiJuros">—</div></div>
+      <div class="kpi red"><div class="kpi-label">Prazo Real</div><div class="kpi-value" id="kpiPrazo">—</div></div>
+      <div class="kpi green"><div class="kpi-label">Economia (Extra)</div><div class="kpi-value" id="kpiEconomia">—</div></div>
+    </div>
+
+    <!-- Tabela -->
+    <div class="card">
+      <div class="card-title"><span class="icon">📄</span> Tabela de Amortização</div>
+      <div class="table-wrap" id="tableWrap">
+        <table id="amortTable">
+          <thead><tr>
+            <th>Mês</th><th>Parcela</th><th>Juros</th><th>Amortiz.</th><th>Saldo Devedor</th><th>Total Pago</th>
+          </tr></thead>
+          <tbody id="amortBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="chart-row">
+      <div class="chart-box">
+        <div class="card-title" style="margin-bottom:12px;"><span class="icon">📈</span> Evolução do Saldo Devedor</div>
+        <canvas id="chartSaldo"></canvas>
+      </div>
+      <div class="chart-box">
+        <div class="card-title" style="margin-bottom:12px;"><span class="icon">📊</span> Juros vs Valor Original</div>
+        <canvas id="chartJuros"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════ TAB: INVESTIR VS AMORTIZAR ════════════ -->
+  <div class="tab-panel" id="tab-comparativo">
+    <div class="card">
+      <div class="card-title"><span class="icon">⚖️</span> Análise: Investir ou Amortizar?</div>
+      <div class="grid grid-2" style="margin-bottom:18px;">
+        <div class="input-group">
+          <label>Juros do Financiamento (%)</label>
+          <input type="number" id="cmpJuros" value="9.5" step="0.1" min="0" oninput="calcComparativo()">
+          <div class="helper">Digite <strong>só o número</strong><br><span class="ex">ex: 9.5 significa 9,50% ao ano</span></div>
+        </div>
+        <div class="input-group">
+          <label>Selic Atual (%)</label>
+          <input type="number" id="cmpSelic" value="14.75" step="0.25" min="0" oninput="calcComparativo()">
+          <div class="helper">Digite <strong>só o número</strong><br><span class="ex">ex: 14.75 significa 14,75% ao ano</span></div>
+        </div>
+        <div class="input-group">
+          <label>Alíquota IR sobre Investimento (%)</label>
+          <input type="number" id="cmpIR" value="15" step="1" min="0" max="100" oninput="calcComparativo()">
+          <div class="helper">Digite <strong>só o número</strong><br><span class="ex">ex: 15 significa 15% de IR</span></div>
+        </div>
+        <div class="input-group">
+          <label>CET do Financiamento (% a.a.) — opcional</label>
+          <input type="number" id="cmpCET" value="" step="0.1" min="0" placeholder="Se diferente dos juros" oninput="calcComparativo()">
+          <div class="helper">Deixe vazio para usar os juros acima<br><span class="ex">ex: 11.2 significa CET de 11,20%</span></div>
+        </div>
+      </div>
+
+      <div class="kpi-row">
+        <div class="kpi blue"><div class="kpi-label">Juros Dívida (a.a.)</div><div class="kpi-value" id="cmpKpiDiv">—</div></div>
+        <div class="kpi green"><div class="kpi-label">Selic Bruta (a.a.)</div><div class="kpi-value" id="cmpKpiSelic">—</div></div>
+        <div class="kpi warn"><div class="kpi-label">Selic Líquida (a.a.)</div><div class="kpi-value" id="cmpKpiLiq">—</div></div>
+        <div class="kpi red"><div class="kpi-label">Spread</div><div class="kpi-value" id="cmpKpiSpread">—</div></div>
+      </div>
+
+      <!-- Termômetro -->
+      <div class="thermo-wrap">
+        <div style="font-size:.82rem;color:var(--text-muted);margin-bottom:4px;">TERMÔMETRO DE DECISÃO</div>
+        <div class="thermo-track">
+          <div class="thermo-needle" id="thermoNeedle">👉</div>
+        </div>
+        <div class="thermo-labels">
+          <span>◀ AMORTIZAR</span>
+          <span>EQUILÍBRIO</span>
+          <span>INVESTIR ▶</span>
+        </div>
+        <div class="thermo-verdict invest" id="thermoVerdict">⚡ INVESTIR</div>
+        <div class="thermo-detail" id="thermoDetail">—</div>
+      </div>
+
+      <div class="chart-box" style="margin-top:18px;">
+        <div class="card-title" style="margin-bottom:12px;"><span class="icon">📊</span> Simulação: Amortizar Extra vs Investir (60 meses · aporte R$ 1.000/mês)</div>
+        <canvas id="chartCompare"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════ TAB: CUSTO DE OPORTUNIDADE ════════════ -->
+  <div class="tab-panel" id="tab-oportunidade">
+    <div class="card">
+      <div class="card-title"><span class="icon">💡</span> E se eu investir o valor da parcela?</div>
+      <p style="font-size:.83rem;color:var(--text-muted);margin-bottom:16px;">
+        Simula o acúmulo se, ao invés de pagar a parcela, você investisse esse valor na Selic durante todo o prazo.
+      </p>
+      <div class="grid grid-3">
+        <div class="input-group">
+          <label>Parcela Mensal (R$)</label>
+          <input type="number" id="opParcela" value="2500" min="0" oninput="calcOportunidade()">
+        </div>
+        <div class="input-group">
+          <label>Prazo (meses)</label>
+          <input type="number" id="opPrazo" value="360" min="1" oninput="calcOportunidade()">
+        </div>
+        <div class="input-group">
+          <label>Taxa Selic (%)</label>
+          <input type="number" id="opSelic" value="14.75" step="0.25" min="0" oninput="calcOportunidade()">
+          <div class="helper">Digite <strong>só o número</strong><br><span class="ex">ex: 14.75 significa 14,75% ao ano</span></div>
+        </div>
+        <div class="input-group">
+          <label>IR sobre Rendimento (%)</label>
+          <input type="number" id="opIR" value="15" step="1" min="0" max="100" oninput="calcOportunidade()">
+          <div class="helper">Digite <strong>só o número</strong><br><span class="ex">ex: 15 significa 15% de IR</span></div>
+        </div>
+        <div class="input-group">
+          <label>Valor do Imóvel (R$)</label>
+          <input type="number" id="opImovel" value="300000" min="0" oninput="calcOportunidade()">
+        </div>
+      </div>
+
+      <div class="kpi-row" style="margin-top:18px;">
+        <div class="kpi green"><div class="kpi-label">Montante Acumulado</div><div class="kpi-value" id="opKpiMontante">—</div></div>
+        <div class="kpi blue"><div class="kpi-label">Total Investido</div><div class="kpi-value" id="opKpiInv">—</div></div>
+        <div class="kpi warn"><div class="kpi-label">Rendimento Líq.</div><div class="kpi-value" id="opKpiRend">—</div></div>
+        <div class="kpi red"><div class="kpi-label">Valor do Imóvel</div><div class="kpi-value" id="opKpiImovel">—</div></div>
+        <div class="kpi green"><div class="kpi-label">Saldo Final</div><div class="kpi-value" id="opKpiSaldo">—</div></div>
+      </div>
+
+      <div class="chart-box" style="margin-top:18px;">
+        <canvas id="chartOportunidade"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════ TAB: ALUGUEL VS COMPRA ════════════ -->
+  <div class="tab-panel" id="tab-aluguel">
+    <div class="card">
+      <div class="card-title"><span class="icon">🏠</span> Aluguel vs Compra (Financiamento)</div>
+      <p style="font-size:.83rem;color:var(--text-muted);margin-bottom:16px;">
+        Calcula: se você pagar aluguel e investir a diferença entre a parcela e o aluguel na Selic, em quanto tempo você compra o imóvel à vista?
+      </p>
+      <div class="grid grid-3">
+        <div class="input-group">
+          <label>Valor do Imóvel (R$)</label>
+          <input type="number" id="algImovel" value="300000" min="0" oninput="calcAluguel()">
+        </div>
+        <div class="input-group">
+          <label>Parcela do Financiamento (R$)</label>
+          <input type="number" id="algParcela" value="2500" min="0" oninput="calcAluguel()">
+        </div>
+        <div class="input-group">
+          <label>Valor do Aluguel (R$)</label>
+          <input type="number" id="algAluguel" value="1200" min="0" oninput="calcAluguel()">
+        </div>
+        <div class="input-group">
+          <label>Selic (%)</label>
+          <input type="number" id="algSelic" value="14.75" step="0.25" min="0" oninput="calcAluguel()">
+          <div class="helper">Digite <strong>só o número</strong><br><span class="ex">ex: 14.75 significa 14,75% ao ano</span></div>
+        </div>
+        <div class="input-group">
+          <label>IR sobre Rendimento (%)</label>
+          <input type="number" id="algIR" value="15" step="1" min="0" max="100" oninput="calcAluguel()">
+          <div class="helper">Digite <strong>só o número</strong><br><span class="ex">ex: 15 significa 15% de IR</span></div>
+        </div>
+        <div class="input-group">
+          <label>Reajuste Anual do Aluguel (%)</label>
+          <input type="number" id="algReajuste" value="5" step="0.5" min="0" oninput="calcAluguel()">
+          <div class="helper">Digite <strong>só o número</strong><br><span class="ex">ex: 5 significa 5% ao ano</span></div>
+        </div>
+      </div>
+
+      <div class="kpi-row" style="margin-top:18px;">
+        <div class="kpi green"><div class="kpi-label">Aporte Mensal</div><div class="kpi-value" id="algKpiAporte">—</div></div>
+        <div class="kpi blue"><div class="kpi-label">Tempo para Comprar</div><div class="kpi-value" id="algKpiTempo">—</div></div>
+        <div class="kpi warn"><div class="kpi-label">Total Investido</div><div class="kpi-value" id="algKpiTotInv">—</div></div>
+        <div class="kpi red"><div class="kpi-label">Total em Aluguel</div><div class="kpi-value" id="algKpiTotAlg">—</div></div>
+      </div>
+
+      <div class="chart-box" style="margin-top:18px;">
+        <canvas id="chartAluguel"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════ TAB: QUITAR EM X ANOS ════════════ -->
+  <div class="tab-panel" id="tab-quitar">
+    <div class="card">
+      <div class="card-title"><span class="icon">🎯</span> Quitar em X anos — Engenharia Reversa</div>
+      <p style="font-size:.83rem;color:var(--text-muted);margin-bottom:16px;">
+        Informe o prazo desejado para quitar e o sistema calcula quanto você precisa pagar a mais por mês.
+      </p>
+      <div class="grid grid-3">
+        <div class="input-group">
+          <label>Valor do Financiamento (R$)</label>
+          <input type="number" id="qitValor" value="300000" min="0" oninput="calcQuitar()">
+        </div>
+        <div class="input-group">
+          <label>Taxa de Juros Anual (%)</label>
+          <input type="number" id="qitTaxa" value="9.5" step="0.1" min="0" oninput="calcQuitar()">
+          <div class="helper">Digite <strong>só o número</strong><br><span class="ex">ex: 9.5 significa 9,50% ao ano</span></div>
+        </div>
+        <div class="input-group">
+          <label>Prazo Original (anos)</label>
+          <input type="number" id="qitPrazoOrig" value="30" min="1" oninput="calcQuitar()">
+        </div>
+        <div class="input-group">
+          <label>Sistema</label>
+          <select id="qitSistema" onchange="calcQuitar()">
+            <option value="price">PRICE</option>
+            <option value="sac">SAC</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label>Prazo Desejado (anos)</label>
+          <input type="number" id="qitPrazoDesejado" value="5" min="1" oninput="calcQuitar()">
+        </div>
+      </div>
+
+      <div class="quitar-result" id="quitarResult">
+        <div class="kpi-row">
+          <div class="kpi green"><div class="kpi-label">Parcela Original</div><div class="kpi-value" id="qitKpiOrig">—</div></div>
+          <div class="kpi blue"><div class="kpi-label">Nova Parcela</div><div class="kpi-value" id="qitKpiNova">—</div></div>
+          <div class="kpi warn"><div class="kpi-label">Adicional/Mês</div><div class="kpi-value" id="qitKpiExtra">—</div></div>
+          <div class="kpi red"><div class="kpi-label">Economia Total</div><div class="kpi-value" id="qitKpiEcon">—</div></div>
+        </div>
+      </div>
+
+      <div class="chart-box" style="margin-top:18px;">
+        <div class="card-title" style="margin-bottom:12px;"><span class="icon">📊</span> Saldo Devedor: Original vs Quitação Rápida</div>
+        <canvas id="chartQuitar"></canvas>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ════════════ TAB: INVESTIR → SACAR → AMORTIZAR ════════════ -->
+  <div class="tab-panel" id="tab-investsacar">
+    <div class="card" id="wizardCard">
+      <div class="card-title"><span class="icon">🔄</span> Investir → Sacar → Amortizar (Ciclos)</div>
+      <p style="font-size:.83rem;color:var(--text-muted);margin-bottom:18px;">
+        Estratégia de <strong style="color:var(--accent);">múltiplos ciclos</strong>: investe na Selic durante N meses, saca o montante com <strong style="color:var(--accent);">juros compostos</strong> líquidos e amortiza o financiamento. Cada ciclo reduz o saldo devedor e os juros futuros.
+      </p>
+
+      <!-- Financiamento -->
+      <div class="is-section">
+        <div class="is-section-title">🏦 Financiamento</div>
+        <div class="grid grid-3">
+          <div class="input-group">
+            <label>Valor do Financiamento (R$)</label>
+            <input type="number" id="isValorFinanc" value="300000" min="0" oninput="wizPreview1()">
+            <div class="helper"><span class="ex">ex: 300000 = R$ 300.000,00</span></div>
+          </div>
+          <div class="input-group">
+            <label>Taxa do Financiamento (% a.a.)</label>
+            <input type="number" id="isTaxaFinanc" value="9.5" step="0.1" min="0" oninput="wizPreview1()">
+            <div class="helper">Digite <strong>só o número</strong><br><span class="ex">ex: 9.5 = 9,50% ao ano</span></div>
+          </div>
+          <div class="input-group">
+            <label>Prazo do Financiamento (anos)</label>
+            <input type="number" id="isPrazoFinanc" value="30" min="1" oninput="wizPreview1()">
+            <div class="helper"><span class="ex">ex: 30 = prazo de 30 anos</span></div>
+          </div>
+          <div class="input-group">
+            <label>Sistema de Amortização</label>
+            <select id="isSistema" onchange="wizPreview1()">
+              <option value="price">PRICE — parcela fixa</option>
+              <option value="sac">SAC — amortização fixa</option>
+            </select>
+            <div class="helper"><span class="ex">PRICE: parcela constante durante todo o contrato<br>SAC: amortização fixa, parcela cai com o tempo</span></div>
+          </div>
+        </div>
+        <div class="is-preview" id="wizPrev1">
+          <span>📋 Parcela estimada:</span>
+          <span class="pval" id="wizPrevVal1">—</span>
+        </div>
+      </div>
+
+      <!-- Investimento -->
+      <div class="is-section green">
+        <div class="is-section-title">💰 Parâmetros do Investimento</div>
+        <div class="grid grid-3">
+          <div class="input-group">
+            <label>Aporte Mensal (R$)</label>
+            <input type="number" id="isAporte" value="2000" min="0" oninput="wizPreview2()">
+            <div class="helper"><span class="ex">ex: 2000 = R$ 2.000,00/mês</span></div>
+          </div>
+          <div class="input-group">
+            <label>Selic esperada (% a.a.)</label>
+            <input type="number" id="isSelic" value="13.75" step="0.25" min="0" oninput="wizPreview2()">
+            <div class="helper">Digite <strong>só o número</strong><br><span class="ex">ex: 13.75 = 13,75% ao ano</span></div>
+          </div>
+          <div class="input-group">
+            <label>IR sobre Rendimento (%)</label>
+            <input type="number" id="isIR" value="15" step="1" min="0" max="100" oninput="wizPreview2()">
+            <div class="helper"><span class="ex">Incide só sobre o ganho, não sobre o capital</span></div>
+          </div>
+          <div class="input-group">
+            <label>Tipo de Investimento</label>
+            <select id="isTipoInv" onchange="wizPreview2()">
+              <option value="selicLiq">Selic líquido (CDB / LCI)</option>
+            </select>
+            <div class="helper"><span class="ex">Rendimento atrelado à Selic com IR descontado</span></div>
+          </div>
+        </div>
+        <div class="is-preview" id="wizPrev2">
+          <span>📈 Taxa líquida:</span> <span class="pval" id="wizPrevVal2">—</span>
+          <span class="psep">|</span>
+          <span>Montante após 12 meses:</span> <span class="pval" id="wizPrevMontante12">—</span>
+        </div>
+      </div>
+
+      <!-- Ciclos -->
+      <div class="is-section green">
+        <div class="is-section-title">🔄 Ciclos de Investimento</div>
+        <div style="display:flex;align-items:center;gap:24px;flex-wrap:wrap;">
+          <div>
+            <label style="display:block;font-size:.77rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.6px;font-weight:600;margin-bottom:8px;">Quantos ciclos?</label>
+            <div class="is-ciclo-row">
+              <button class="is-ciclo-btn" onclick="wizNumCiclos(-1)">−</button>
+              <input type="number" class="is-ciclo-num" id="isNumCiclos" value="5" min="1" max="30" oninput="wizPreview3()">
+              <button class="is-ciclo-btn" onclick="wizNumCiclos(1)">+</button>
+            </div>
+          </div>
+          <div class="input-group" style="flex:1;min-width:200px;max-width:300px;">
+            <label>Duração de cada ciclo (meses)</label>
+            <input type="number" id="isPrazoInv" value="24" min="1" oninput="wizPreview3()">
+            <div class="helper"><span class="ex">ex: 24 = investe por 2 anos, depois saca e amortiza</span></div>
+          </div>
+        </div>
+        <div class="is-preview" id="wizPrev3">
+          <span>🕐 Total da estratégia:</span>
+          <span class="pval" id="wizPrevCiclosTempo">—</span> <span>meses</span>
+          <span class="psep">|</span>
+          <span class="pval" id="wizPrevCiclosAnos">—</span> <span>anos</span>
+          <span class="psep">|</span>
+          <span>Prazo do financiamento:</span> <strong id="wizPrevPrazoFinanc">—</strong>
+        </div>
+      </div>
+
+      <!-- Explicação JC — colapsável -->
+      <button class="is-jc-toggle" id="jcToggleBtn" onclick="toggleJC()">
+        <span class="arrow">▶</span> Como funciona o cálculo? (Juros Compostos)
+      </button>
+      <div class="is-jc-panel" id="jcPanel">
+        <div class="is-jc-box">
+          <div class="jc-intro">
+            O investimento acumula com <strong>juros compostos</strong>: cada mês o aporte se soma ao saldo anterior e <em>todo</em> o saldo rende novamente.
+            O IR é descontado apenas sobre o <strong>rendimento mensal</strong>, nunca sobre o capital que você depositou.
+          </div>
+
+          <div class="formula-box">
+            Montante<sub>m</sub> = (Montante<sub>m-1</sub> + Aporte) × (1 + i<sub>líq</sub>)
+          </div>
+
+          <div class="step-row">
+            <div class="step-num">1</div>
+            <div class="step-text">
+              <strong>Taxa mensal bruta</strong><br>
+              i<sub>bruto</sub> = (1 + Selic)<sup>1/12</sup> − 1<br>
+              Converte a taxa Selic anual para sua equivalente mensal usando raiz 12ª (não divisão simples).
+            </div>
+          </div>
+          <div class="step-row">
+            <div class="step-num">2</div>
+            <div class="step-text">
+              <strong>Desconta o IR do rendimento</strong><br>
+              i<sub>líq</sub> = i<sub>bruto</sub> × (1 − IR%)<br>
+              O IR incide <em>só sobre o ganho</em> de cada mês. Se você investiu R$ 2.000 e ganhou R$ 20, o IR é sobre os R$ 20.
+            </div>
+          </div>
+          <div class="step-row">
+            <div class="step-num">3</div>
+            <div class="step-text">
+              <strong>Acumulação com juros compostos</strong><br>
+              Mês 1: (0 + 2.000) × (1 + i<sub>líq</sub>)<br>
+              Mês 2: (resultado anterior + 2.000) × (1 + i<sub>líq</sub>)<br>
+              Os juros do mês 1 também rendem no mês 2 — isso é o que torna compostos diferentes de simples.
+            </div>
+          </div>
+          <div class="step-row">
+            <div class="step-num">4</div>
+            <div class="step-text">
+              <strong>Saque e amortização extra</strong><br>
+              No fim do ciclo você saca o montante total e usa para pagar uma parcela extra do financiamento.
+              O saldo devedor cai, e os juros que você pagaria nos meses seguintes caem junto.
+            </div>
+          </div>
+          <div class="step-row">
+            <div class="step-num">5</div>
+            <div class="step-text">
+              <strong>Novo ciclo</strong><br>
+              O financiamento agora tem saldo menor. O próximo ciclo começa do zero no investimento mas com menos dívida — e assim vai até completar todos os ciclos.
+            </div>
+          </div>
+
+          <div class="jc-exemplo">
+            <strong>Exemplo com os valores padrão:</strong> Aporte R$ 2.000/mês, Selic 13,75%, IR 15%.
+            A taxa líquida mensal fica ≈ 0,92%. Em 24 meses de investimento acumula ≈ R$ 53.900.
+            Esse valor vai inteiro para reduzir o saldo do financiamento de R$ 300.000 — economizando milhares em juros ao longo dos anos.
+          </div>
+        </div>
+      </div>
+
+      <!-- Botão simular -->
+      <div style="margin-top:24px;">
+        <button class="is-btn-sim" onclick="wizFinish()">🚀 Simular Estratégia</button>
+      </div>
+    </div>
+
+    <!-- ── RESULTADOS ── -->
+    <div class="wizard-results" id="wizResults">
+      <div class="card">
+        <div class="card-title" style="justify-content:space-between;">
+          <span><span class="icon">📊</span> Resultado da Simulação</span>
+          <button class="wiz-restart" onclick="wizRestart()">🔁 Nova Simulação</button>
+        </div>
+        <div class="kpi-row">
+          <div class="kpi blue"><div class="kpi-label">Parcela Original</div><div class="kpi-value" id="isKpiParOrig">—</div></div>
+          <div class="kpi warn"><div class="kpi-label">Parcela Final</div><div class="kpi-value" id="isKpiParNova">—</div></div>
+          <div class="kpi green"><div class="kpi-label">Total Amortizado (ciclos)</div><div class="kpi-value" id="isKpiMontante">—</div></div>
+          <div class="kpi green"><div class="kpi-label">Prazo Restante</div><div class="kpi-value" id="isKpiPrazoNov">—</div></div>
+          <div class="kpi red"><div class="kpi-label">Economia Total</div><div class="kpi-value" id="isKpiEconomia">—</div></div>
+        </div>
+        <div id="isCicloLog" style="margin:14px 0;font-size:.81rem;color:var(--text-muted);background:var(--bg-card2);border-radius:8px;padding:12px 16px;border:1px solid var(--border);max-height:160px;overflow-y:auto;"></div>
+        <div class="chart-box">
+          <div class="card-title" style="margin-bottom:12px;"><span class="icon">📈</span> Ciclos: Investimento acumulando → saque → saldo devedor caindo</div>
+          <canvas id="chartInvestSacar"></canvas>
+        </div>
+      </div>
+      
+      <div class="menu-subcategory">
+        <div class="menu-subcategory-title">📈 Investimentos</div>
+        <button class="menu-item" onclick="switchTabFromMenu('juroscompostos')">
+          <span class="icon">🧮</span> Juros Compostos
+        </button>
+      </div>
+    </div>
+
+
+  <!-- ════════════ TAB: JUROS COMPOSTOS ════════════ -->
+  <div class="tab-panel" id="tab-juroscompostos">
+    <div class="card">
+      <div class="card-title"><span class="icon">🧮</span> Calculadora de Juros Compostos</div>
+      <p style="font-size:.83rem;color:var(--text-muted);margin-bottom:18px;">
+        Simula o crescimento de um investimento com <strong style="color:var(--accent);">juros compostos</strong>: aportes mensais regulares + rendimento sobre todo o saldo acumulado. Desconta IR apenas sobre o rendimento.
+      </p>
+
+      <!-- Inputs -->
+      <div style="border-left:3px solid var(--accent);padding-left:18px;margin-bottom:22px;">
+        <div style="font-size:.80rem;font-weight:700;color:var(--accent);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px;">💰 Parâmetros do Investimento</div>
+        <div class="grid grid-3">
+          <div class="input-group">
+            <label>Investimento Inicial (R$)</label>
+            <input type="number" id="jcInicial" value="10000" min="0" oninput="calcJurosCompostos()">
+            <div class="helper"><span class="ex">ex: 10000 = R$ 10.000,00 aplicado no início</span></div>
+          </div>
+          <div class="input-group">
+            <label>Aporte Mensal (R$)</label>
+            <input type="number" id="jcAporte" value="1000" min="0" oninput="calcJurosCompostos()">
+            <div class="helper"><span class="ex">ex: 1000 = R$ 1.000,00 por mês</span></div>
+          </div>
+          <div class="input-group">
+            <label>Período (meses)</label>
+            <input type="number" id="jcPeriodo" value="60" min="1" max="600" oninput="calcJurosCompostos()">
+            <div class="helper"><span class="ex">ex: 60 = 5 anos de investimento</span></div>
+          </div>
+          <div class="input-group">
+            <label>Taxa de Juros (% a.a.)</label>
+            <input type="number" id="jcTaxa" value="12" step="0.1" min="0" oninput="calcJurosCompostos()">
+            <div class="helper">Digite <strong>só o número</strong><br><span class="ex">ex: 12 = 12% ao ano</span></div>
+          </div>
+          <div class="input-group">
+            <label>IR sobre Rendimento (%)</label>
+            <input type="number" id="jcIR" value="15" step="1" min="0" max="100" oninput="calcJurosCompostos()">
+            <div class="helper"><span class="ex">Cobrado apenas sobre o lucro, não sobre o capital</span></div>
+          </div>
+          <div class="input-group">
+            <label>Tipo de Aporte</label>
+            <select id="jcTipoAporte" onchange="calcJurosCompostos()">
+              <option value="inicio">Início do mês (antecipado)</option>
+              <option value="fim">Fim do mês (postecipado)</option>
+            </select>
+            <div class="helper"><span class="ex">Início = rende desde o 1º dia do mês</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- KPIs -->
+      <div class="kpi-row">
+        <div class="kpi blue"><div class="kpi-label">Total Investido</div><div class="kpi-value" id="jcKpiInvestido">—</div></div>
+        <div class="kpi green"><div class="kpi-label">Montante Final</div><div class="kpi-value" id="jcKpiMontante">—</div></div>
+        <div class="kpi warn"><div class="kpi-label">Rendimento Bruto</div><div class="kpi-value" id="jcKpiRendBruto">—</div></div>
+        <div class="kpi red"><div class="kpi-label">IR Pago</div><div class="kpi-value" id="jcKpiIR">—</div></div>
+        <div class="kpi green"><div class="kpi-label">Rendimento Líquido</div><div class="kpi-value" id="jcKpiRendLiq">—</div></div>
+      </div>
+
+      <!-- Fórmula Explicada -->
+      <div style="background:var(--bg-card2);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:10px;padding:18px 20px;margin:18px 0;">
+        <div style="font-size:.78rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px;">📐 Como funciona a fórmula</div>
+        <div style="font-size:.82rem;color:var(--text-muted);line-height:1.6;margin-bottom:12px;">
+          A cada mês, o <strong style="color:var(--text);">saldo anterior + novo aporte</strong> rende juros. Os juros do mês passado também rendem — é isso que torna os juros <strong style="color:var(--accent);">compostos</strong>.
+        </div>
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:10px 16px;margin:12px 0;font-family:'Courier New',monospace;font-size:.84rem;color:var(--accent2);line-height:1.8;">
+          Montante<sub>m</sub> = (Montante<sub>m-1</sub> + Aporte) × (1 + i<sub>líq</sub>)
+        </div>
+        <div style="font-size:.81rem;color:var(--text-muted);line-height:1.6;">
+          <strong style="color:var(--text);">i<sub>líq</sub></strong> = taxa mensal líquida, já descontado o IR sobre o rendimento de cada mês.<br>
+          <strong style="color:var(--text);">Exemplo:</strong> Se você começa com R$ 10.000 e adiciona R$ 1.000 por mês a 12% a.a. (≈ 0,95% a.m.), em 5 anos acumula ≈ R$ 82.000, sendo R$ 70.000 investidos e R$ 12.000 de lucro líquido.
+        </div>
+      </div>
+
+      <!-- Gráfico -->
+      <div class="chart-box" style="margin-top:18px;">
+        <div class="card-title" style="margin-bottom:12px;"><span class="icon">📈</span> Evolução do Patrimônio</div>
+        <canvas id="chartJurosCompostos"></canvas>
+      </div>
+    </div>
+  </div>
+  </div>
+</div>
+
+</div><!-- /container -->
+
+<script>
+// ══════════════════════════════════════════════════════════
+// DADOS HISTÓRICOS SELIC (mensal 2020-2025) → média 5a
+// ══════════════════════════════════════════════════════════
+const SELIC_HISTORICO = [
+  4.25,3.75,3.25,3.25,2.65,2.25,2.0,2.0,2.0,2.0,1.75,1.75,  // 2020
+  1.75,1.75,2.0,2.75,3.25,3.75,4.25,4.75,5.25,5.75,6.25,6.75, // 2021
+  7.25,7.75,8.25,8.75,9.25,9.75,10.25,10.75,11.25,11.75,11.75,11.75, // 2022
+  12.25,12.75,13.25,13.75,14.15,13.75,13.75,13.25,12.75,12.25,12.25,11.75, // 2023
+  11.75,11.75,11.25,10.75,10.5,10.5,10.5,10.75,11.0,11.25,11.25,11.75, // 2024
+  12.25,13.75 // 2025 jan-feb
+];
+
+function calcMediaSelic5A() {
+  const ultimos = SELIC_HISTORICO.slice(-60);
+  return ultimos.reduce((a,b) => a + b, 0) / ultimos.length;
+}
+
+// ══════════════════════════════════════════════════════════
+// FORMATADORES — centralizados e consistentes
+// ══════════════════════════════════════════════════════════
+
+/**
+ * Formata número com separadores pt-BR: 1550 → "1.550,00"
+ */
+function fmt(n) {
+  const num = Number(n);
+  if (isNaN(num)) return '0,00';
+  return num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+/**
+ * Formata como Real completo: "R$ 1.550,00"
+ */
+function fmtR(n) {
+  return 'R$ ' + fmt(n);
+}
+
+/**
+ * Formata percentual: 9.5 → "9,50%"
+ */
+function fmtPct(n) {
+  const num = Number(n);
+  if (isNaN(num)) return '0,00%';
+  return num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%';
+}
+
+// ── Chart.js scale/tooltip helpers ──────────────────────
+// ATENÇÃO: Chart.js v4 MUTATE a config internamente após new Chart().
+// Reutilizar um mesmo objeto entre gráficos corrompe os callbacks → "[object Object]".
+// Cada função abaixo retorna um objeto NOVO a cada chamada.
+
+function _axisLabel(v) {
+  // v pode chegar como number, string ou até um objeto interno do Chart
+  var n = (typeof v === 'number') ? v : Number(v);
+  if (isNaN(n)) return '';
+  if (Math.abs(n) >= 1e6) return 'R$ ' + (n/1e6).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1}) + ' M';
+  if (Math.abs(n) >= 1e3) return 'R$ ' + (n/1e3).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0}) + ' k';
+  return 'R$ ' + fmt(n);
+}
+
+function _tooltipLabel(ctx) {
+  // ctx.parsed pode ser number OU {x, y} em line charts com fill: true
+  var raw = ctx.parsed;
+  var val = (raw !== null && typeof raw === 'object' && 'y' in raw) ? raw.y : raw;
+  if (val === null || val === undefined || isNaN(Number(val))) return '';
+  // doughnut/pie: ctx.label tem nome do slice → inclui para clareza
+  var prefix = ctx.label ? ctx.label + ': ' : '';
+  return prefix + fmtR(val);
+}
+
+// Retorna scales.x NOVO
+function _scaleX(maxTicks, unit) {
+  // unit: 'meses' (padrão) ou 'anos'
+  const legenda = unit === 'anos' 
+    ? 'A0, A1, A2... = anos'
+    : 'M1, M2, M3... = meses';
+  
+  return {
+    ticks: { color:'#7a7f95', maxTicksLimit: maxTicks||10, font:{size:11} },
+    grid: { color:'#252838' },
+    title: {
+      display: true,
+      text: legenda,
+      color: '#7a7f95',
+      font: { size: 10, style: 'italic' },
+      padding: { top: 8 }
+    }
+  };
+}
+// Retorna scales.y NOVO com callback fresco
+function _scaleY() {
+  return { ticks:{ color:'#7a7f95', callback: _axisLabel, font:{size:11} }, grid:{color:'#252838'} };
+}
+// Retorna plugins NOVO { legend + tooltip }
+function _plugins() {
+  return {
+    legend:  { labels:{ color:'#7a7f95', font:{size:12} } },
+    tooltip: { callbacks:{ label: _tooltipLabel } }
+  };
+}
+
+
+// ── Taxa líquida correta: IR incide sobre o RENDIMENTO mensal, não sobre a taxa nominal ──
+// iMensBruto = (1 + selic_aa/100)^(1/12) - 1
+// iMensLiq   = iMensBruto * (1 - IR/100)        ← retém IR do rendimento
+// taxa_aa_liq = (1 + iMensLiq)^12 - 1           ← equivalente anual líquido
+function _iMensLiq(selicAA, irPct) {
+  var iBruto = Math.pow(1 + selicAA / 100, 1 / 12) - 1;
+  return iBruto * (1 - irPct / 100);
+}
+function _selicLiqAA(selicAA, irPct) {
+  return (Math.pow(1 + _iMensLiq(selicAA, irPct), 12) - 1) * 100;
+}
+
+// ══════════════════════════════════════════════════════════
+// CONVERSÕES DE TAXA / PRAZO
+// ══════════════════════════════════════════════════════════
+function taxaAnualParaMensal(anual) {
+  return (Math.pow(1 + anual / 100, 1 / 12) - 1) * 100;
+}
+function taxaMensalParaAnual(mensal) {
+  return (Math.pow(1 + mensal / 100, 12) - 1) * 100;
+}
+
+function syncTaxas(origem) {
+  if (origem === 'anual') {
+    const a = parseFloat(document.getElementById('taxaAnual').value) || 0;
+    const m = taxaAnualParaMensal(a);
+    document.getElementById('taxaMensal').value = m.toFixed(4);
+    document.getElementById('taxaMensalHelper').textContent = 'Mensal: ' + fmtPct(m);
+  } else {
+    const m = parseFloat(document.getElementById('taxaMensal').value) || 0;
+    const a = taxaMensalParaAnual(m);
+    document.getElementById('taxaAnual').value = a.toFixed(2);
+    document.getElementById('taxaMensalHelper').textContent = 'Mensal: ' + fmtPct(m);
+  }
+  calcular();
+}
+
+function syncPrazo(origem) {
+  if (origem === 'anos') {
+    document.getElementById('prazoMeses').value = (parseInt(document.getElementById('prazoAnos').value) || 1) * 12;
+  } else {
+    document.getElementById('prazoAnos').value = Math.round((parseInt(document.getElementById('prazoMeses').value) || 12) / 12);
+  }
+  calcular();
+}
+
+// ══════════════════════════════════════════════════════════
+// AMORTIZAÇÃO PRICE
+// ══════════════════════════════════════════════════════════
+function calcPrice(PV, taxaMens, n) {
+  const i = taxaMens / 100;
+  if (i === 0) {
+    const pmt = PV / n;
+    let saldo = PV, arr = [], tp = 0;
+    for (let m = 1; m <= n; m++) { saldo -= pmt; tp += pmt; arr.push({ mes: m, parcela: pmt, juros: 0, amort: pmt, saldo: Math.max(saldo, 0), totalPago: tp }); }
+    return arr;
+  }
+  const pmt = PV * (i * Math.pow(1 + i, n)) / (Math.pow(1 + i, n) - 1);
+  let saldo = PV, arr = [], tp = 0;
+  for (let m = 1; m <= n; m++) {
+    const juros = saldo * i;
+    const amort = pmt - juros;
+    saldo -= amort;
+    tp += pmt;
+    arr.push({ mes: m, parcela: pmt, juros, amort, saldo: Math.max(saldo, 0), totalPago: tp });
+  }
+  return arr;
+}
+
+// ══════════════════════════════════════════════════════════
+// AMORTIZAÇÃO SAC
+// ══════════════════════════════════════════════════════════
+function calcSAC(PV, taxaMens, n) {
+  const i = taxaMens / 100;
+  const amortConst = PV / n;
+  let saldo = PV, arr = [], tp = 0;
+  for (let m = 1; m <= n; m++) {
+    const juros = saldo * i;
+    const parcela = amortConst + juros;
+    saldo -= amortConst;
+    tp += parcela;
+    arr.push({ mes: m, parcela, juros, amort: amortConst, saldo: Math.max(saldo, 0), totalPago: tp });
+  }
+  return arr;
+}
+
+// ══════════════════════════════════════════════════════════
+// AMORTIZAÇÃO EXTRA
+// ══════════════════════════════════════════════════════════
+function aplicaExtra(tabelaBase, valorExtra, tipoExtra, efeito, PV, taxaMens, sistema) {
+  if (!valorExtra || valorExtra <= 0) return tabelaBase;
+  const i = taxaMens / 100;
+  const n = tabelaBase.length;
+  let saldo = PV, nova = [], tp = 0;
+
+  let parcelaBase = 0;
+  if (sistema === 'price') {
+    parcelaBase = i === 0 ? PV / n : PV * (i * Math.pow(1 + i, n)) / (Math.pow(1 + i, n) - 1);
+  }
+
+  for (let m = 1; saldo > 0.01; m++) {
+    const juros = saldo * i;
+    const extraMes = (tipoExtra === 'unica' && m > 1) ? 0 : valorExtra;
+
+    if (sistema === 'price') {
+      if (efeito === 'prazo') {
+        const amort = parcelaBase - juros;
+        const amortTotal = amort + extraMes;
+        saldo -= amortTotal;
+        if (saldo < 0) saldo = 0;
+        const parcelaPaga = parcelaBase + ((tipoExtra === 'unica' && m === 1) ? valorExtra : (tipoExtra === 'recorrente' ? valorExtra : 0));
+        tp += parcelaPaga;
+        nova.push({ mes: m, parcela: parcelaPaga, juros, amort: amortTotal, saldo, totalPago: tp });
+      } else {
+        // Reduzir parcela
+        if (tipoExtra === 'unica' && m === 1) saldo -= valorExtra;
+        const prazoRestante = n - m + 1;
+        if (prazoRestante <= 0) break;
+        const newPMT = i > 0 ? saldo * (i * Math.pow(1 + i, prazoRestante)) / (Math.pow(1 + i, prazoRestante) - 1) : saldo / prazoRestante;
+        const amort = newPMT - juros;
+        saldo -= amort;
+        if (saldo < 0) saldo = 0;
+        tp += newPMT + (tipoExtra === 'unica' && m === 1 ? valorExtra : 0);
+        nova.push({ mes: m, parcela: newPMT, juros, amort, saldo, totalPago: tp });
+      }
+    } else {
+      // SAC com extra
+      const amortConst = PV / n;
+      const amortTotal = amortConst + extraMes;
+      saldo -= amortTotal;
+      if (saldo < 0) saldo = 0;
+      const parcela = amortConst + juros;
+      tp += parcela + ((tipoExtra === 'unica' && m === 1) ? valorExtra : 0);
+      nova.push({ mes: m, parcela, juros, amort: amortTotal, saldo, totalPago: tp });
+    }
+    if (m > n * 2) break; // segurança
+  }
+  return nova;
+}
+
+// ══════════════════════════════════════════════════════════
+// CALCULAR — tab principal
+// ══════════════════════════════════════════════════════════
+let chartSaldo = null, chartJuros = null;
+// Armazena tabela atual para exportação
+let _tabelaAtual = [];
+
+function calcular() {
+  const valor   = parseFloat(document.getElementById('valorFinanc').value) || 0;
+  const taxaM   = parseFloat(document.getElementById('taxaMensal').value) || 0;
+  const prazo   = parseInt(document.getElementById('prazoMeses').value) || 360;
+  const sistema = document.getElementById('sistema').value;
+  const extra   = parseFloat(document.getElementById('valorExtra').value) || 0;
+  const tipoExt = document.getElementById('tipoExtra').value;
+  const efeito  = document.getElementById('efeito').value;
+
+  const errEl = document.getElementById('errMain');
+  if (valor <= 0 || prazo < 1 || taxaM < 0) { errEl.classList.add('show'); return; }
+  errEl.classList.remove('show');
+
+  const tblPrice = calcPrice(valor, taxaM, prazo);
+  const tblSAC   = calcSAC(valor, taxaM, prazo);
+  const tblPriceExtra = extra > 0 ? aplicaExtra(tblPrice, extra, tipoExt, efeito, valor, taxaM, 'price') : tblPrice;
+  const tblSACExtra   = extra > 0 ? aplicaExtra(tblSAC, extra, tipoExt, efeito, valor, taxaM, 'sac') : tblSAC;
+
+  let tblPrincipal, tblPrincipalBase;
+  if (sistema === 'price')  { tblPrincipal = tblPriceExtra; tblPrincipalBase = tblPrice; }
+  else if (sistema === 'sac') { tblPrincipal = tblSACExtra;  tblPrincipalBase = tblSAC; }
+  else { tblPrincipal = tblPriceExtra; tblPrincipalBase = tblPrice; }
+
+  _tabelaAtual = tblPrincipal; // salvar para export
+
+  // ── KPIs ──
+  const totalPago     = tblPrincipal[tblPrincipal.length - 1].totalPago;
+  const totalJuros    = totalPago - valor;
+  const totalPagoBase = tblPrincipalBase[tblPrincipalBase.length - 1].totalPago;
+  const economia      = totalPagoBase - totalPago;
+
+  document.getElementById('kpiParcela').textContent  = fmtR(tblPrincipal[0].parcela);
+  document.getElementById('kpiTotal').textContent    = fmtR(totalPago);
+  document.getElementById('kpiJuros').textContent    = fmtR(totalJuros);
+  document.getElementById('kpiPrazo').textContent    = tblPrincipal.length + ' meses (' + (tblPrincipal.length / 12).toFixed(1) + ' a)';
+  document.getElementById('kpiEconomia').textContent = economia > 0 ? fmtR(economia) : '—';
+
+  // ── Tabela HTML ──
+  const tbody = document.getElementById('amortBody');
+  let html = '';
+  tblPrincipal.forEach(r => {
+    html += '<tr>'
+      + '<td>' + r.mes + '</td>'
+      + '<td class="pos">' + fmtR(r.parcela) + '</td>'
+      + '<td class="neg">' + fmtR(r.juros) + '</td>'
+      + '<td>' + fmtR(r.amort) + '</td>'
+      + '<td>' + fmtR(r.saldo) + '</td>'
+      + '<td>' + fmtR(r.totalPago) + '</td>'
+      + '</tr>';
+  });
+  tbody.innerHTML = html;
+
+  // ── Chart 1: Saldo Devedor (linha) ──
+  const labelsS = [], dataP = [], dataS = [];
+  const maxLen  = Math.max(tblPriceExtra.length, tblSACExtra.length);
+  const step    = Math.max(1, Math.floor(maxLen / 60));
+  for (let i = 0; i < maxLen; i += step) {
+    labelsS.push(i === 0 ? '0' : 'M' + i);
+    dataP.push(i < tblPriceExtra.length ? tblPriceExtra[i].saldo : 0);
+    dataS.push(i < tblSACExtra.length  ? tblSACExtra[i].saldo  : 0);
+  }
+  labelsS.push('Fim'); dataP.push(0); dataS.push(0);
+
+  if (chartSaldo) chartSaldo.destroy();
+  chartSaldo = new Chart(document.getElementById('chartSaldo').getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: labelsS,
+      datasets: [
+        { label: 'PRICE', data: dataP, borderColor: '#5b8cf5', backgroundColor: 'rgba(91,140,245,.08)', fill: true, tension: .3, pointRadius: 0, borderWidth: 2.5 },
+        { label: 'SAC',   data: dataS, borderColor: '#00d4aa', backgroundColor: 'rgba(0,212,170,.08)',  fill: true, tension: .3, pointRadius: 0, borderWidth: 2.5 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: true,
+      interaction: { mode: 'index', intersect: false },
+      plugins: _plugins(),
+      scales: { x: _scaleX(8), y: _scaleY() }
+    }
+  });
+
+  // ── Chart 2: Doughnut Juros vs Capital ──
+  const totalJ_price = tblPriceExtra[tblPriceExtra.length - 1].totalPago - valor;
+  const totalJ_sac   = tblSACExtra[tblSACExtra.length - 1].totalPago - valor;
+
+  if (chartJuros) chartJuros.destroy();
+  chartJuros = new Chart(document.getElementById('chartJuros').getContext('2d'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Capital', 'Juros PRICE', 'Juros SAC'],
+      datasets: [{ data: [valor, totalJ_price, totalJ_sac], backgroundColor: ['#5b8cf5', '#ef5350', '#f5a623'], borderColor: '#161822', borderWidth: 3 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: true,
+      plugins: _plugins()
+    }
+  });
+
+  calcComparativo();
+}
+
+// ══════════════════════════════════════════════════════════
+// TAB: COMPARATIVO
+// ══════════════════════════════════════════════════════════
+let chartCompare = null;
+
+function calcComparativo() {
+  const juros  = parseFloat(document.getElementById('cmpJuros').value) || 0;
+  const selic  = parseFloat(document.getElementById('cmpSelic').value) || 0;
+  const ir     = parseFloat(document.getElementById('cmpIR').value) || 15;
+  const cetVal = document.getElementById('cmpCET').value;
+  const cet    = cetVal !== '' ? (parseFloat(cetVal) || 0) : juros;
+
+  const selicLiq = _selicLiqAA(selic, ir);
+  const spread   = selicLiq - cet;
+
+  document.getElementById('cmpKpiDiv').textContent    = fmtPct(cet);
+  document.getElementById('cmpKpiSelic').textContent  = fmtPct(selic);
+  document.getElementById('cmpKpiLiq').textContent    = fmtPct(selicLiq);
+  document.getElementById('cmpKpiSpread').textContent = (spread >= 0 ? '+' : '') + fmtPct(spread);
+
+  // Termômetro posição
+  let pos = 50 + (spread / Math.max(cet, 1)) * 40;
+  pos = Math.max(5, Math.min(95, pos));
+  document.getElementById('thermoNeedle').style.left = pos + '%';
+
+  const verdict = document.getElementById('thermoVerdict');
+  const detail  = document.getElementById('thermoDetail');
+  const needle  = document.getElementById('thermoNeedle');
+
+  if (selicLiq > cet) {
+    verdict.className = 'thermo-verdict invest';
+    verdict.textContent = '⚡ INVESTIR';
+    needle.style.borderColor = 'var(--accent)';
+    detail.innerHTML = 'Matematicamente compensa mais <strong style="color:var(--accent)">INVESTIR</strong>, pois a taxa líquida do investimento (' + fmtPct(selicLiq) + ') é <strong>maior</strong> que os juros da dívida (' + fmtPct(cet) + '). Spread favorável: +' + fmtPct(spread) + '.';
+  } else if (selicLiq < cet) {
+    verdict.className = 'thermo-verdict amortizar';
+    verdict.textContent = '🏦 AMORTIZAR';
+    needle.style.borderColor = 'var(--danger)';
+    detail.innerHTML = 'Matematicamente compensa mais <strong style="color:var(--danger)">AMORTIZAR</strong>, pois a taxa líquida do investimento (' + fmtPct(selicLiq) + ') é <strong>menor</strong> que os juros da dívida (' + fmtPct(cet) + '). Spread: ' + fmtPct(spread) + '.';
+  } else {
+    verdict.className = 'thermo-verdict invest';
+    verdict.textContent = '⚖️ EQUILÍBRIO';
+    needle.style.borderColor = 'var(--warn)';
+    detail.innerHTML = 'As taxas são praticamente iguais (' + fmtPct(selicLiq) + ' vs ' + fmtPct(cet) + '). A decisão depende de fatores pessoais como liquidez e perfil de risco.';
+  }
+
+  // Chart: simulação 60 meses com aporte R$1000
+  const meses = 60, aporte = 1000;
+  const iCet  = Math.pow(1 + cet / 100, 1 / 12) - 1;
+  const iLiq  = _iMensLiq(selic, ir);
+  let sInvest = 0, sAmort = 0;
+  const dInvest = [], dAmort = [], labels = [];
+  for (let m = 1; m <= meses; m++) {
+    sInvest = (sInvest + aporte) * (1 + iLiq);
+    sAmort = (sAmort + aporte) * (1 + iCet);
+    dInvest.push(sInvest);
+    dAmort.push(sAmort);
+    labels.push('M' + m);
+  }
+
+  if (chartCompare) chartCompare.destroy();
+  chartCompare = new Chart(document.getElementById('chartCompare').getContext('2d'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Investir (Selic Líq.)',  data: dInvest, borderColor: '#00d4aa', backgroundColor: 'rgba(0,212,170,.08)',  fill: true, tension: .3, pointRadius: 0, borderWidth: 2.5 },
+        { label: 'Amortizar (Economia)', data: dAmort, borderColor: '#ef5350', backgroundColor: 'rgba(239,83,80,.08)', fill: true, tension: .3, pointRadius: 0, borderWidth: 2.5 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: true,
+      interaction: { mode: 'index', intersect: false },
+      plugins: _plugins(),
+      scales: { x: _scaleX(8), y: _scaleY() }
+    }
+  });
+}
+
+// ══════════════════════════════════════════════════════════
+// TAB: CUSTO DE OPORTUNIDADE
+// ══════════════════════════════════════════════════════════
+let chartOportunidade = null;
+
+function calcOportunidade() {
+  const parcela = parseFloat(document.getElementById('opParcela').value) || 0;
+  const prazo   = parseInt(document.getElementById('opPrazo').value) || 360;
+  const selic   = parseFloat(document.getElementById('opSelic').value) || 0;
+  const ir      = parseFloat(document.getElementById('opIR').value) || 15;
+  const imovel  = parseFloat(document.getElementById('opImovel').value) || 0;
+
+  const iMens   = _iMensLiq(selic, ir);
+
+  let saldo = 0, totalInv = 0;
+  const dados = [0], labels = ['Início'];
+
+  for (let m = 1; m <= prazo; m++) {
+    saldo = (saldo + parcela) * (1 + iMens);
+    totalInv += parcela;
+    if (m % 12 === 0 || m === prazo) { dados.push(saldo); labels.push('M' + m); }
+  }
+
+  const rendLiq   = saldo - totalInv;
+  const saldoFinal = saldo - imovel;
+
+  document.getElementById('opKpiMontante').textContent = fmtR(saldo);
+  document.getElementById('opKpiInv').textContent      = fmtR(totalInv);
+  document.getElementById('opKpiRend').textContent     = fmtR(rendLiq);
+  document.getElementById('opKpiImovel').textContent   = fmtR(imovel);
+  const elSaldo = document.getElementById('opKpiSaldo');
+  elSaldo.textContent = saldoFinal >= 0 ? fmtR(saldoFinal) : '− ' + fmtR(Math.abs(saldoFinal));
+  elSaldo.style.color = saldoFinal >= 0 ? 'var(--accent)' : 'var(--danger)';
+
+  if (chartOportunidade) chartOportunidade.destroy();
+  chartOportunidade = new Chart(document.getElementById('chartOportunidade').getContext('2d'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Montante Acumulado', data: dados, borderColor: '#00d4aa', backgroundColor: 'rgba(0,212,170,.1)', fill: true, tension: .3, pointRadius: 0, borderWidth: 2.5 },
+        { label: 'Valor do Imóvel',    data: new Array(labels.length).fill(imovel), borderColor: '#f5a623', borderDash: [6, 3], borderWidth: 2, pointRadius: 0 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: true,
+      interaction: { mode: 'index', intersect: false },
+      plugins: _plugins(),
+      scales: { x: _scaleX(8), y: _scaleY() }
+    }
+  });
+}
+
+// ══════════════════════════════════════════════════════════
+// TAB: ALUGUEL VS COMPRA
+// ══════════════════════════════════════════════════════════
+let chartAluguel = null;
+
+function calcAluguel() {
+  const imovel   = parseFloat(document.getElementById('algImovel').value) || 0;
+  const parcela  = parseFloat(document.getElementById('algParcela').value) || 0;
+  const aluguel  = parseFloat(document.getElementById('algAluguel').value) || 0;
+  const selic    = parseFloat(document.getElementById('algSelic').value) || 0;
+  const ir       = parseFloat(document.getElementById('algIR').value) || 15;
+  const reajuste = parseFloat(document.getElementById('algReajuste').value) || 0;
+
+  const iMens    = _iMensLiq(selic, ir);
+  const iReaj    = Math.pow(1 + reajuste / 100, 1 / 12) - 1;
+
+  let saldo = 0, totalInv = 0, totalAlg = 0;
+  let aluguelAtual = aluguel, tempoMeses = 0;
+  const dados = [0], labels = ['0'];
+
+  for (let m = 1; m <= 600; m++) {
+    if (m > 1) aluguelAtual *= (1 + iReaj);
+    const apoAtual = parcela - aluguelAtual;
+    if (apoAtual > 0) { saldo = (saldo + apoAtual) * (1 + iMens); totalInv += apoAtual; }
+    totalAlg += aluguelAtual;
+    if (m % 12 === 0) { dados.push(saldo); labels.push('A' + (m / 12)); }
+    if (saldo >= imovel && tempoMeses === 0) tempoMeses = m;
+    if (tempoMeses > 0 && m > tempoMeses + 12) break;
+  }
+  dados.push(saldo); labels.push('Fim');
+
+  document.getElementById('algKpiAporte').textContent  = fmtR(parcela - aluguel);
+  document.getElementById('algKpiTempo').textContent   = tempoMeses > 0 ? tempoMeses + ' meses (' + (tempoMeses / 12).toFixed(1) + ' a)' : '> 50 anos';
+  document.getElementById('algKpiTotInv').textContent  = fmtR(totalInv);
+  document.getElementById('algKpiTotAlg').textContent  = fmtR(totalAlg);
+
+  if (chartAluguel) chartAluguel.destroy();
+  chartAluguel = new Chart(document.getElementById('chartAluguel').getContext('2d'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Poupança Acumulada', data: dados, borderColor: '#5b8cf5', backgroundColor: 'rgba(91,140,245,.08)', fill: true, tension: .3, pointRadius: 0, borderWidth: 2.5 },
+        { label: 'Meta (Imóvel)',      data: new Array(labels.length).fill(imovel), borderColor: '#00d4aa', borderDash: [6, 3], borderWidth: 2, pointRadius: 0 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: true,
+      interaction: { mode: 'index', intersect: false },
+      plugins: _plugins(),
+      scales: { x: _scaleX(8, 'anos'), y: _scaleY() }
+    }
+  });
+}
+
+// ══════════════════════════════════════════════════════════
+// TAB: QUITAR EM X ANOS
+// ══════════════════════════════════════════════════════════
+let chartQuitar = null;
+
+function calcQuitar() {
+  const valor     = parseFloat(document.getElementById('qitValor').value) || 0;
+  const taxaAnual = parseFloat(document.getElementById('qitTaxa').value) || 0;
+  const prazoOrig = (parseInt(document.getElementById('qitPrazoOrig').value) || 30) * 12;
+  const prazoNovo = (parseInt(document.getElementById('qitPrazoDesejado').value) || 5) * 12;
+  const sistema   = document.getElementById('qitSistema').value;
+  const taxaM     = taxaAnualParaMensal(taxaAnual) / 100;
+
+  // Parcela original
+  let parcelaOrig;
+  if (sistema === 'price') {
+    parcelaOrig = taxaM === 0 ? valor / prazoOrig : valor * (taxaM * Math.pow(1 + taxaM, prazoOrig)) / (Math.pow(1 + taxaM, prazoOrig) - 1);
+  } else {
+    parcelaOrig = valor / prazoOrig + valor * taxaM;
+  }
+
+  // Nova parcela
+  let parcelaNova;
+  if (sistema === 'price') {
+    parcelaNova = prazoNovo <= 0 ? valor : taxaM === 0 ? valor / prazoNovo : valor * (taxaM * Math.pow(1 + taxaM, prazoNovo)) / (Math.pow(1 + taxaM, prazoNovo) - 1);
+  } else {
+    parcelaNova = valor / prazoNovo + valor * taxaM;
+  }
+
+  const adicional = parcelaNova - parcelaOrig;
+  // Economia: usar totalPago das tabelas (correto para SAC onde parcela varia)
+  const tblOrigEcon = sistema === 'price' ? calcPrice(valor, taxaM * 100, prazoOrig) : calcSAC(valor, taxaM * 100, prazoOrig);
+  const tblNovaEcon = sistema === 'price' ? calcPrice(valor, taxaM * 100, prazoNovo) : calcSAC(valor, taxaM * 100, prazoNovo);
+  const economia  = tblOrigEcon[tblOrigEcon.length-1].totalPago - tblNovaEcon[tblNovaEcon.length-1].totalPago;
+
+  document.getElementById('qitKpiOrig').textContent  = fmtR(parcelaOrig);
+  document.getElementById('qitKpiNova').textContent  = fmtR(parcelaNova);
+  document.getElementById('qitKpiExtra').textContent = (adicional >= 0 ? '' : '− ') + fmtR(Math.abs(adicional));
+  document.getElementById('qitKpiEcon').textContent  = fmtR(Math.max(economia, 0));
+
+  // Chart
+  const tblOrig = sistema === 'price' ? calcPrice(valor, taxaM * 100, prazoOrig) : calcSAC(valor, taxaM * 100, prazoOrig);
+  const tblNova = sistema === 'price' ? calcPrice(valor, taxaM * 100, prazoNovo) : calcSAC(valor, taxaM * 100, prazoNovo);
+  const maxM = Math.max(tblOrig.length, tblNova.length);
+  const step = Math.max(1, Math.floor(maxM / 50));
+  const labels = [], dOrig = [], dNova = [];
+  for (let i = 0; i < maxM; i += step) {
+    labels.push('M' + i);
+    dOrig.push(i < tblOrig.length ? tblOrig[i].saldo : null);
+    dNova.push(i < tblNova.length ? tblNova[i].saldo : null);
+  }
+  // Apenas adiciona ponto final 0 na série que ainda não terminou
+  labels.push('Fim');
+  dOrig.push(tblOrig.length > 0 ? 0 : null);
+  dNova.push(tblNova.length > 0 ? 0 : null);
+
+  if (chartQuitar) chartQuitar.destroy();
+  chartQuitar = new Chart(document.getElementById('chartQuitar').getContext('2d'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Prazo Original',  data: dOrig, borderColor: '#ef5350', backgroundColor: 'rgba(239,83,80,.08)', fill: true, tension: .3, pointRadius: 0, borderWidth: 2.5, spanGaps:false },
+        { label: 'Quitação Rápida', data: dNova, borderColor: '#00d4aa', backgroundColor: 'rgba(0,212,170,.08)', fill: true, tension: .3, pointRadius: 0, borderWidth: 2.5, spanGaps:false }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: true,
+      interaction: { mode: 'index', intersect: false },
+      plugins: _plugins(),
+      scales: { x: _scaleX(8), y: _scaleY() }
+    }
+  });
+}
+
+// ══════════════════════════════════════════════════════════
+
+// ══════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
+// INVESTSACAR — previews + controles
+// ══════════════════════════════════════════════════════════
+function wizPreview1() {
+  const valor = parseFloat(document.getElementById('isValorFinanc').value) || 0;
+  const taxa  = parseFloat(document.getElementById('isTaxaFinanc').value)  || 0;
+  const prazo = (parseInt(document.getElementById('isPrazoFinanc').value)  || 30) * 12;
+  const sis   = document.getElementById('isSistema').value;
+  if (valor > 0 && prazo > 0 && taxa >= 0) {
+    const i = taxaAnualParaMensal(taxa) / 100;
+    let pmt;
+    if (sis === 'price') {
+      pmt = i === 0 ? valor/prazo : valor*(i*Math.pow(1+i,prazo))/(Math.pow(1+i,prazo)-1);
+    } else {
+      pmt = valor/prazo + valor*i;
+    }
+    document.getElementById('wizPrevVal1').textContent = fmtR(pmt) + (sis==='sac'?' (1º mês)':'');
+  } else {
+    document.getElementById('wizPrevVal1').textContent = '—';
+  }
+}
+
+function wizPreview2() {
+  const selic  = parseFloat(document.getElementById('isSelic').value) || 0;
+  const ir     = parseFloat(document.getElementById('isIR').value)    || 15;
+  const aporte = parseFloat(document.getElementById('isAporte').value)|| 0;
+  const liq    = _selicLiqAA(selic, ir);
+  const iML    = _iMensLiq(selic, ir);
+  document.getElementById('wizPrevVal2').textContent = fmtPct(liq) + ' a.a.';
+  let mont = 0;
+  for (let m = 0; m < 12; m++) mont = (mont + aporte) * (1 + iML);
+  document.getElementById('wizPrevMontante12').textContent = fmtR(mont);
+}
+
+function wizPreview3() {
+  const ciclos     = Math.max(1, parseInt(document.getElementById('isNumCiclos').value) || 1);
+  const prazo      = Math.max(1, parseInt(document.getElementById('isPrazoInv').value)  || 24);
+  const prazoFinanc = parseInt(document.getElementById('isPrazoFinanc').value) || 30;
+  const total      = ciclos * prazo;
+  document.getElementById('wizPrevCiclosTempo').textContent  = total;
+  document.getElementById('wizPrevCiclosAnos').textContent   = (total/12).toFixed(1);
+  document.getElementById('wizPrevPrazoFinanc').textContent  = prazoFinanc + ' anos';
+}
+
+function wizNumCiclos(delta) {
+  const el = document.getElementById('isNumCiclos');
+  let v = (parseInt(el.value) || 1) + delta;
+  el.value = Math.max(1, Math.min(30, v));
+  wizPreview3();
+}
+
+function wizFinish() {
+  // IMPORTANTE: mostra os resultados ANTES de criar o chart
+  // (Chart.js precisa que o canvas esteja visível para calcular dimensões)
+  document.getElementById('wizResults').classList.add('show');
+  // Aguarda o DOM renderizar o canvas visível, depois cria o chart
+  setTimeout(() => {
+    calcInvestSacar();
+    document.getElementById('wizResults').scrollIntoView({ behavior:'smooth', block:'start' });
+  }, 50);
+}
+
+function wizRestart() {
+  document.getElementById('wizResults').classList.remove('show');
+  window.scrollTo({ top: 0, behavior:'smooth' });
+}
+
+function toggleJC() {
+  const btn   = document.getElementById('jcToggleBtn');
+  const panel = document.getElementById('jcPanel');
+  btn.classList.toggle('open');
+  panel.classList.toggle('open');
+}
+
+// TAB: INVESTIR → SACAR → AMORTIZAR
+// ══════════════════════════════════════════════════════════
+let chartJurosCompostos = null;
+let chartInvestSacar = null;
+
+function calcInvestSacar() {
+  // ── Inputs ──
+  const aporte      = parseFloat(document.getElementById('isAporte').value)      || 0;
+  const prazociclo  = parseInt(document.getElementById('isPrazoInv').value)      || 24;
+  const numCiclos   = Math.max(1, parseInt(document.getElementById('isNumCiclos').value) || 5);
+  const selic       = parseFloat(document.getElementById('isSelic').value)       || 0;
+  const ir          = parseFloat(document.getElementById('isIR').value)          || 15;
+  const valorFinanc = parseFloat(document.getElementById('isValorFinanc').value) || 0;
+  const taxaFinanc  = parseFloat(document.getElementById('isTaxaFinanc').value)  || 0;
+  const prazoFinanc = (parseInt(document.getElementById('isPrazoFinanc').value)  || 30) * 12;
+  const sistema     = document.getElementById('isSistema').value;
+
+  if (valorFinanc <= 0 || prazoFinanc < 1) return;
+
+  // ── Taxas ──
+  const iMensLiq  = _iMensLiq(selic, ir);                    // taxa mensal líquida do investimento (JC correto)
+  const taxaMF    = taxaAnualParaMensal(taxaFinanc) / 100;   // taxa mensal do financiamento (decimal)
+
+  // ── Baseline: financiamento completo sem estratégia ──
+  const tblBaseline = sistema === 'price'
+    ? calcPrice(valorFinanc, taxaMF * 100, prazoFinanc)
+    : calcSAC(  valorFinanc, taxaMF * 100, prazoFinanc);
+  const parcelaOrig = tblBaseline.length > 0 ? tblBaseline[0].parcela : 0;
+  const totalOrig   = tblBaseline.length > 0 ? tblBaseline[tblBaseline.length-1].totalPago : 0;
+
+  // ── ENGINE: N ciclos de investir → sacar → amortizar ──
+  // Lógica:
+  //   mGlobal        = meses decorridos na linha do tempo (só sobe)
+  //   saldoDevedor   = saldo atual do financiamento
+  //   Em cada ciclo:
+  //     1) prazo restante do financiamento = prazoFinanc − mGlobal
+  //     2) gera tabela de amortização com saldoDevedor + prazo restante
+  //     3) durante prazoCiclo meses: investe com JC líquido, financiamento anda normal
+  //     4) saca montante → amortiza saldo devedor (sem reduzir prazo)
+  //     5) novo ciclo recalcula tudo com novo saldo e novo prazo restante
+  let saldoDevedor        = valorFinanc;
+  let mGlobal             = 0;
+  let totalAmortExtra     = 0;
+  let totalPagoEstrategia = 0;
+
+  const serieInv = [0];
+  const serieDev = [valorFinanc];
+  const labelsG  = ['0'];
+  let logHtml = '';
+
+  for (let ciclo = 1; ciclo <= numCiclos; ciclo++) {
+    if (saldoDevedor <= 0.01) break;
+    const prazoRestReal = prazoFinanc - mGlobal;   // prazo real restante do financiamento
+    if (prazoRestReal <= 0) break;
+
+    const mesisDeste = Math.min(prazociclo, prazoRestReal);
+
+    // Tabela de amortização do financiamento com estado atual
+    const tblCiclo = sistema === 'price'
+      ? calcPrice(saldoDevedor, taxaMF * 100, prazoRestReal)
+      : calcSAC(  saldoDevedor, taxaMF * 100, prazoRestReal);
+
+    // Fase A: acumula investimento com JC líquido (aporte mensal)
+    // montante_m = (montante_{m-1} + aporte) × (1 + iMensLiq)  → juros compostos com IR
+    let montante = 0;
+    for (let m = 0; m < mesisDeste; m++) {
+      montante = (montante + aporte) * (1 + iMensLiq);
+      serieInv.push(montante);
+      serieDev.push(m < tblCiclo.length ? tblCiclo[m].saldo : 0);
+      labelsG.push('M' + (mGlobal + m + 1));
+      totalPagoEstrategia += (m < tblCiclo.length ? tblCiclo[m].parcela : 0);
+    }
+    mGlobal += mesisDeste;
+
+    // Saldo devedor após parcelas normais do ciclo
+    saldoDevedor = (mesisDeste > 0 && mesisDeste <= tblCiclo.length)
+      ? tblCiclo[mesisDeste - 1].saldo
+      : 0;
+
+    // Fase B: saca montante e amortiza
+    const amortEste = Math.min(montante, saldoDevedor);
+    saldoDevedor    = Math.max(saldoDevedor - montante, 0);
+    totalAmortExtra += amortEste;
+
+    serieInv.push(0);
+    serieDev.push(saldoDevedor);
+    labelsG.push('M' + mGlobal + '↓');
+
+    logHtml += '<div style="margin-bottom:5px;padding:4px 10px;border-radius:6px;' +
+      'background:' + (saldoDevedor <= 0.01 ? 'rgba(0,212,170,.15)' : 'rgba(91,140,245,.1)') +
+      ';border-left:3px solid ' + (saldoDevedor <= 0.01 ? 'var(--accent)' : 'var(--accent2)') + ';">' +
+      '<strong style="color:var(--accent2);">Ciclo ' + ciclo + '</strong> ' +
+      '· Investiu ' + mesisDeste + 'm · Montante: <strong style="color:var(--accent);">' + fmtR(montante) + '</strong>' +
+      ' · Amortizou: <strong>' + fmtR(amortEste) + '</strong>' +
+      ' · Saldo: <strong style="color:' + (saldoDevedor <= 0.01 ? 'var(--accent)' : 'var(--danger)') + ';">' +
+      (saldoDevedor <= 0.01 ? 'Quitado ✅' : fmtR(saldoDevedor)) + '</strong></div>';
+  }
+
+  // ── Após todos os ciclos: paga o restante no prazo real ──
+  let parcelaFinal = 0;
+  const prazoFinal = prazoFinanc - mGlobal;
+  if (saldoDevedor > 0.01 && prazoFinal > 0) {
+    const tblFinal = sistema === 'price'
+      ? calcPrice(saldoDevedor, taxaMF * 100, prazoFinal)
+      : calcSAC(  saldoDevedor, taxaMF * 100, prazoFinal);
+    parcelaFinal = tblFinal.length > 0 ? tblFinal[0].parcela : 0;
+    totalPagoEstrategia += tblFinal.length > 0 ? tblFinal[tblFinal.length-1].totalPago : 0;
+    for (let m = 0; m < tblFinal.length; m++) {
+      serieInv.push(0);
+      serieDev.push(tblFinal[m].saldo);
+      labelsG.push('M' + (mGlobal + m + 1));
+    }
+  }
+
+  // Economia = o que pagaria sem estratégia − o que pagou com estratégia
+  const economia = totalOrig - totalPagoEstrategia;
+  const prazoRestExibir = prazoFinanc - mGlobal;
+
+  // ── KPIs ──
+  document.getElementById('isKpiParOrig').textContent   = fmtR(parcelaOrig);
+  document.getElementById('isKpiParNova').textContent   = saldoDevedor <= 0.01 ? 'Quitado! ✅' : fmtR(parcelaFinal);
+  document.getElementById('isKpiMontante').textContent  = fmtR(totalAmortExtra);
+  document.getElementById('isKpiPrazoNov').textContent  = saldoDevedor <= 0.01
+    ? 'Quitado em ' + mGlobal + ' meses (' + (mGlobal/12).toFixed(1) + ' a)'
+    : prazoRestExibir + ' meses (' + (prazoRestExibir/12).toFixed(1) + ' a)';
+  document.getElementById('isKpiEconomia').textContent  = economia > 0 ? fmtR(economia) : '—';
+  document.getElementById('isCicloLog').innerHTML       = logHtml || '<em style="color:var(--text-muted)">Sem ciclos.</em>';
+
+  // ── Densifica séries se muito longas ──
+  let dInvF = serieInv, dDevF = serieDev, labF = labelsG;
+  if (serieInv.length > 150) {
+    const step = Math.max(1, Math.floor(serieInv.length / 100));
+    dInvF = []; dDevF = []; labF = [];
+    for (let i = 0; i < serieInv.length; i += step) {
+      dInvF.push(serieInv[i]); dDevF.push(serieDev[i]); labF.push(labelsG[i]);
+    }
+    // último ponto sempre
+    dInvF.push(serieInv[serieInv.length-1]);
+    dDevF.push(serieDev[serieDev.length-1]);
+    labF.push(labelsG[labelsG.length-1]);
+  }
+
+  // ── Chart ──
+  if (chartInvestSacar) chartInvestSacar.destroy();
+  chartInvestSacar = new Chart(document.getElementById('chartInvestSacar').getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: labF,
+      datasets: [
+        { label: '💰 Investimento (ciclo)', data: dInvF, borderColor: '#00d4aa', backgroundColor: 'rgba(0,212,170,.1)',  fill: true, tension: .25, pointRadius: 0, borderWidth: 2.5 },
+        { label: '🏦 Saldo Devedor',        data: dDevF, borderColor: '#ef5350', backgroundColor: 'rgba(239,83,80,.08)', fill: true, tension: .25, pointRadius: 0, borderWidth: 2.5 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: true,
+      interaction: { mode: 'index', intersect: false },
+      plugins: _plugins(),
+      scales: { x: _scaleX(8), y: _scaleY() }
+    }
+  });
+}
+
+// ══════════════════════════════════════════════════════════
+
+
+// ══════════════════════════════════════════════════════════
+// TAB: JUROS COMPOSTOS
+// ══════════════════════════════════════════════════════════
+function calcJurosCompostos() {
+  // ── Inputs ──
+  const inicial   = parseFloat(document.getElementById('jcInicial').value)   || 0;
+  const aporte    = parseFloat(document.getElementById('jcAporte').value)    || 0;
+  const periodo   = parseInt(document.getElementById('jcPeriodo').value)     || 60;
+  const taxaAA    = parseFloat(document.getElementById('jcTaxa').value)      || 0;
+  const ir        = parseFloat(document.getElementById('jcIR').value)        || 15;
+  const tipoAporte= document.getElementById('jcTipoAporte').value;
+
+  // ── Taxa mensal líquida (já com IR descontado sobre o rendimento) ──
+  const iMensLiq  = _iMensLiq(taxaAA, ir);
+
+  // ── Simulação mês a mês ──
+  let saldo = inicial;
+  let totalInvestido = inicial;
+  const labels = ['0'];
+  const serieTotal = [inicial];
+  const serieInv = [inicial];
+
+  for (let m = 1; m <= periodo; m++) {
+    // Aporte no início ou fim do mês
+    if (tipoAporte === 'inicio') {
+      saldo += aporte;
+      totalInvestido += aporte;
+    }
+    
+    // Rendimento mensal sobre todo o saldo
+    saldo *= (1 + iMensLiq);
+    
+    if (tipoAporte === 'fim') {
+      saldo += aporte;
+      totalInvestido += aporte;
+    }
+    
+    labels.push('M' + m);
+    serieTotal.push(saldo);
+    serieInv.push(totalInvestido);
+  }
+
+  // ── Cálculos finais ──
+  const montanteFinal  = saldo;
+  const rendimentoBruto= montanteFinal - totalInvestido;
+  const irPago         = rendimentoBruto * (ir / 100);
+  const rendimentoLiq  = rendimentoBruto - irPago;
+
+  // ── KPIs ──
+  document.getElementById('jcKpiInvestido').textContent  = fmtR(totalInvestido);
+  document.getElementById('jcKpiMontante').textContent   = fmtR(montanteFinal);
+  document.getElementById('jcKpiRendBruto').textContent  = fmtR(rendimentoBruto);
+  document.getElementById('jcKpiIR').textContent         = fmtR(irPago);
+  document.getElementById('jcKpiRendLiq').textContent    = fmtR(rendimentoLiq);
+
+  // ── Densifica séries se muito longas ──
+  let labF = labels, serTotF = serieTotal, serInvF = serieInv;
+  if (labels.length > 150) {
+    const step = Math.max(1, Math.floor(labels.length / 100));
+    labF = []; serTotF = []; serInvF = [];
+    for (let i = 0; i < labels.length; i += step) {
+      labF.push(labels[i]);
+      serTotF.push(serieTotal[i]);
+      serInvF.push(serieInv[i]);
+    }
+    // último ponto sempre
+    labF.push(labels[labels.length-1]);
+    serTotF.push(serieTotal[serieTotal.length-1]);
+    serInvF.push(serieInv[serieInv.length-1]);
+  }
+
+  // ── Chart ──
+  if (chartJurosCompostos) chartJurosCompostos.destroy();
+  chartJurosCompostos = new Chart(document.getElementById('chartJurosCompostos').getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: labF,
+      datasets: [
+        { 
+          label: '💰 Total Investido (capital)', 
+          data: serInvF, 
+          borderColor: '#5b8cf5', 
+          backgroundColor: 'rgba(91,140,245,.08)', 
+          fill: true, 
+          tension: .25, 
+          pointRadius: 0, 
+          borderWidth: 2.5 
+        },
+        { 
+          label: '📈 Montante (capital + rendimento)', 
+          data: serTotF, 
+          borderColor: '#00d4aa', 
+          backgroundColor: 'rgba(0,212,170,.1)', 
+          fill: true, 
+          tension: .25, 
+          pointRadius: 0, 
+          borderWidth: 2.5 
+        }
+      ]
+    },
+    options: {
+      responsive: true, 
+      maintainAspectRatio: true,
+      interaction: { mode: 'index', intersect: false },
+      plugins: _plugins(),
+      scales: { x: _scaleX(8), y: _scaleY() }
+    }
+  });
+}
+
+// ══════════════════════════════════════════════════════════
+// HAMBURGER MENU
+// ══════════════════════════════════════════════════════════
+function toggleHamburger() {
+  document.getElementById('hamburgerMenu').classList.toggle('open');
+  document.getElementById('hamburgerOverlay').classList.toggle('open');
+}
+
+function switchTabFromMenu(tabId) {
+  toggleHamburger();
+  switchTab(tabId);
+}
+
+// TABS NAVIGATION
+// ══════════════════════════════════════════════════════════
+function switchTab(id) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  const map = ['simulador', 'comparativo', 'oportunidade', 'aluguel', 'quitar', 'investsacar', 'juroscompostos'];
+  const idx = map.indexOf(id);
+  if (idx >= 0) document.querySelectorAll('.tabs button')[idx].classList.add('active');
+  
+  // Sincroniza menu hamburguer
+  document.querySelectorAll('.menu-item').forEach(item => {
+    if (item.onclick && item.onclick.toString().includes("'"+id+"'")) {
+      item.classList.add('active');
+    } else {
+      item.classList.remove('active');
+    }
+  });
+
+  if (id === 'comparativo')  calcComparativo();
+  if (id === 'oportunidade') calcOportunidade();
+  if (id === 'aluguel')      calcAluguel();
+  if (id === 'quitar')       calcQuitar();
+  if (id === 'investsacar')  calcInvestSacar();
+  if (id === 'juroscompostos') calcJurosCompostos();
+}
+
+// ══════════════════════════════════════════════════════════
+// EXPORT MENU
+// ══════════════════════════════════════════════════════════
+function toggleExportMenu(e) {
+  e.stopPropagation();
+  document.getElementById('exportMenu').classList.toggle('open');
+}
+document.addEventListener('click', () => {
+  document.getElementById('exportMenu').classList.remove('open');
+});
+
+/* ── PDF via window.print() ── */
+// Aplica ou restaura cores nos gráficos SEM remover callbacks
+// print=true → cores claras; print=false → restaura dark
+function _setPrintColors(charts, forPrint) {
+  const tc = forPrint ? '#555'    : '#7a7f95';
+  const gc = forPrint ? '#eee'    : '#252838';
+  const lc = forPrint ? '#333'    : '#7a7f95';
+  charts.forEach(c => {
+    if (!c) return;
+    // scales — apenas cores; callback SEMPRE reforçado para evitar [object Object]
+    if (c.options.scales) {
+      if (c.options.scales.x) { c.options.scales.x.ticks.color = tc; c.options.scales.x.grid.color = gc; }
+      if (c.options.scales.y) {
+        c.options.scales.y.ticks.color = tc;
+        c.options.scales.y.grid.color = gc;
+        c.options.scales.y.ticks.callback = _axisLabel;
+      }
+    }
+    // plugins — tooltip callback e legend SEMPRE reforçados
+    if (!c.options.plugins) c.options.plugins = {};
+    if (!c.options.plugins.tooltip) c.options.plugins.tooltip = {};
+    c.options.plugins.tooltip.callbacks = { label: _tooltipLabel };
+    if (!c.options.plugins.legend) c.options.plugins.legend = {};
+    if (!c.options.plugins.legend.labels) c.options.plugins.legend.labels = {};
+    c.options.plugins.legend.labels.color = lc;
+    c.update();
+  });
+}
+function exportPDF() {
+  document.getElementById('exportMenu').classList.remove('open');
+  document.getElementById('printDate').textContent = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  const allCharts = [chartSaldo, chartJuros, chartCompare, chartOportunidade, chartAluguel, chartQuitar, chartInvestSacar, chartJurosCompostos];
+  Chart.defaults.color = '#333';
+  _setPrintColors(allCharts, true);
+  setTimeout(() => {
+    window.print();
+    setTimeout(() => {
+      Chart.defaults.color = '#7a7f95';
+      _setPrintColors(allCharts, false);
+    }, 600);
+  }, 250);
+}
+
+/* ── PNG: baixa cada gráfico como imagem individual ── */
+function exportPNG() {
+  document.getElementById('exportMenu').classList.remove('open');
+  const charts = [
+    { canvas: 'chartSaldo',       nome: 'saldo_devedor' },
+    { canvas: 'chartJuros',       nome: 'juros_vs_capital' },
+    { canvas: 'chartCompare',     nome: 'investir_vs_amortizar' },
+    { canvas: 'chartOportunidade',nome: 'custo_oportunidade' },
+    { canvas: 'chartAluguel',     nome: 'aluguel_vs_compra' },
+    { canvas: 'chartQuitar',      nome: 'quitar_rapido' },
+    { canvas: 'chartInvestSacar', nome: 'investir_sacar_amortizar' },
+    { canvas: 'chartJurosCompostos', nome: 'juros_compostos' }
+  ];
+  charts.forEach(item => {
+    const canvas = document.getElementById(item.canvas);
+    if (!canvas) return;
+    // Desenha em um canvas temporário com fundo branco
+    const tmp = document.createElement('canvas');
+    tmp.width  = canvas.width;
+    tmp.height = canvas.height;
+    const ctx = tmp.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, tmp.width, tmp.height);
+    ctx.drawImage(canvas, 0, 0);
+    // Download
+    const link  = document.createElement('a');
+    link.download = item.nome + '.png';
+    link.href     = tmp.toDataURL('image/png');
+    link.click();
+  });
+}
+
+/* ── CSV ── */
+function exportCSV() {
+  document.getElementById('exportMenu').classList.remove('open');
+  if (!_tabelaAtual || _tabelaAtual.length === 0) { alert('Sem dados na tabela. Calcule primeiro.'); return; }
+  const header = 'Mês;Parcela (R$);Juros (R$);Amortização (R$);Saldo Devedor (R$);Total Pago (R$)\n';
+  let body = '';
+  _tabelaAtual.forEach(r => {
+    body += [r.mes, fmt(r.parcela), fmt(r.juros), fmt(r.amort), fmt(r.saldo), fmt(r.totalPago)].join(';') + '\n';
+  });
+  downloadFile('tabela_amortizacao.csv', header + body, 'text/csv;charset=utf-8');
+}
+
+/* ── EXCEL (.xlsx via OOXML) ── */
+function exportExcel() {
+  document.getElementById('exportMenu').classList.remove('open');
+  if (!_tabelaAtual || _tabelaAtual.length === 0) { alert('Sem dados na tabela. Calcule primeiro.'); return; }
+
+  // Gera XML XLSX completo sem dependências externas
+  const cols = ['Mês', 'Parcela (R$)', 'Juros (R$)', 'Amortização (R$)', 'Saldo Devedor (R$)', 'Total Pago (R$)'];
+
+  // Shared strings
+  const strings = [...cols];
+  _tabelaAtual.forEach(r => { strings.push(String(r.mes)); });
+
+  function escXml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+  // Sheet
+  let sheetData = '';
+  // Header row
+  sheetData += '<row r="1">';
+  cols.forEach((c, i) => {
+    sheetData += '<c r="' + colLetter(i) + '1" t="s"><v>' + strings.indexOf(c) + '</v></c>';
+  });
+  sheetData += '</row>';
+
+  // Data rows
+  _tabelaAtual.forEach((r, idx) => {
+    const row = idx + 2;
+    sheetData += '<row r="' + row + '">';
+    sheetData += '<c r="A' + row + '"><v>' + r.mes + '</v></c>';
+    sheetData += '<c r="B' + row + '" s="1"><v>' + r.parcela.toFixed(2) + '</v></c>';
+    sheetData += '<c r="C' + row + '" s="1"><v>' + r.juros.toFixed(2) + '</v></c>';
+    sheetData += '<c r="D' + row + '" s="1"><v>' + r.amort.toFixed(2) + '</v></c>';
+    sheetData += '<c r="E' + row + '" s="1"><v>' + r.saldo.toFixed(2) + '</v></c>';
+    sheetData += '<c r="F' + row + '" s="1"><v>' + r.totalPago.toFixed(2) + '</v></c>';
+    sheetData += '</row>';
+  });
+
+  function colLetter(i) { return String.fromCharCode(65 + i); }
+
+  // Monta ZIP manual (formato OOXML xlsx)
+  const sheet1 = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>' + sheetData + '</sheetData><autoFilter ref="A1:F' + (_tabelaAtual.length + 1) + '"/></worksheet>';
+
+  const sharedStrings = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" count="' + strings.length + '" uniqueCount="' + strings.length + '">' + strings.map(s => '<si><t>' + escXml(s) + '</t></si>').join('') + '</sst>';
+
+  const styles = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><numFmts count="1"><numFmt numFmtId="164" formatCode="#,##0.00"/></numFmts><fonts count="1"><font><sz val="11"/><name val="Calibri"/></font></fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="164" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/></cellXfs></styleSheet>';
+
+  const workbook = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Amortização" sheetId="1" r:id="rId1"/></sheets></workbook>';
+
+  const rels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings" Target="sharedStrings.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>';
+
+  const topRels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>';
+
+  const contentTypes = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/sharedStrings.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>';
+
+  // Monta ZIP usando DecompressionStream reverso não disponível → usa ZIP manualmente com Blob
+  // Abordagem: gera xlsx com JSZip-like inline (ZIP sem compressão — método stored)
+  const files = [
+    { name: '[Content_Types].xml',          data: contentTypes },
+    { name: '_rels/.rels',                  data: topRels },
+    { name: 'xl/workbook.xml',              data: workbook },
+    { name: 'xl/_rels/workbook.xml.rels',   data: rels },
+    { name: 'xl/worksheets/sheet1.xml',     data: sheet1 },
+    { name: 'xl/sharedStrings.xml',         data: sharedStrings },
+    { name: 'xl/styles.xml',                data: styles }
+  ];
+
+  generateZipAndDownload(files, 'tabela_amortizacao.xlsx');
+}
+
+/* ── ZIP Generator (stored, sem compressão) ── */
+function generateZipAndDownload(files, filename) {
+  const enc = new TextEncoder();
+  const parts = [];
+  const centralDir = [];
+  let offset = 0;
+
+  files.forEach(f => {
+    const nameBytes = enc.encode(f.name);
+    const dataBytes = enc.encode(f.data);
+    const crc = crc32(dataBytes);
+
+    // Local file header
+    const local = new Uint8Array(30 + nameBytes.length);
+    const lv = new DataView(local.buffer);
+    lv.setUint32(0,  0x04034b50, true); // signature
+    lv.setUint16(4,  20, true);         // version needed
+    lv.setUint16(6,  0, true);          // flags
+    lv.setUint16(8,  0, true);          // compression (stored)
+    lv.setUint16(10, 0, true);          // mod time
+    lv.setUint16(12, 0, true);          // mod date
+    lv.setUint32(14, crc, true);        // crc32
+    lv.setUint32(18, dataBytes.length, true); // compressed size
+    lv.setUint32(22, dataBytes.length, true); // uncompressed size
+    lv.setUint16(26, nameBytes.length, true); // name length
+    lv.setUint16(28, 0, true);          // extra length
+    local.set(nameBytes, 30);
+
+    parts.push(local);
+    parts.push(dataBytes);
+
+    // Central directory entry
+    const cd = new Uint8Array(46 + nameBytes.length);
+    const cv = new DataView(cd.buffer);
+    cv.setUint32(0,  0x02014b50, true);
+    cv.setUint16(4,  20, true);
+    cv.setUint16(6,  20, true);
+    cv.setUint16(8,  0, true);
+    cv.setUint16(10, 0, true);
+    cv.setUint16(12, 0, true);
+    cv.setUint16(14, 0, true);
+    cv.setUint32(16, crc, true);
+    cv.setUint32(20, dataBytes.length, true);
+    cv.setUint32(24, dataBytes.length, true);
+    cv.setUint16(28, nameBytes.length, true);
+    cv.setUint16(30, 0, true);
+    cv.setUint16(32, 0, true);
+    cv.setUint16(34, 0, true);
+    cv.setUint16(36, 0, true);
+    cv.setUint16(38, 0, true);
+    cv.setUint32(40, 0, true);
+    cv.setUint32(42, offset, true);
+    cd.set(nameBytes, 46);
+    centralDir.push(cd);
+
+    offset += local.length + dataBytes.length;
+  });
+
+  // Adiciona central dir
+  let cdSize = 0;
+  centralDir.forEach(cd => { parts.push(cd); cdSize += cd.length; });
+
+  // End of central directory
+  const eocd = new Uint8Array(22);
+  const ev = new DataView(eocd.buffer);
+  ev.setUint32(0,  0x06054b50, true);
+  ev.setUint16(4,  0, true);
+  ev.setUint16(6,  0, true);
+  ev.setUint16(8,  files.length, true);
+  ev.setUint16(10, files.length, true);
+  ev.setUint32(12, cdSize, true);
+  ev.setUint32(16, offset, true);
+  ev.setUint16(20, 0, true);
+  parts.push(eocd);
+
+  // Concatena
+  let totalLen = 0;
+  parts.forEach(p => totalLen += p.length);
+  const result = new Uint8Array(totalLen);
+  let pos = 0;
+  parts.forEach(p => { result.set(p, pos); pos += p.length; });
+
+  const blob = new Blob([result], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/* ── CRC32 ── */
+function crc32(buf) {
+  let crc = 0xFFFFFFFF;
+  for (let i = 0; i < buf.length; i++) {
+    crc ^= buf[i];
+    for (let j = 0; j < 8; j++) crc = (crc >>> 1) ^ (crc & 1 ? 0xEDB88320 : 0);
+  }
+  return (crc ^ 0xFFFFFFFF) >>> 0;
+}
+
+/* ── Download helper ── */
+function downloadFile(name, content, mimeType) {
+  const blob = new Blob([content], { type: mimeType });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = name;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ══════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════
+(function init() {
+  const media5a    = calcMediaSelic5A();
+  document.getElementById('selicBadge').textContent = fmtPct(media5a);
+
+  const selicAtual = SELIC_HISTORICO[SELIC_HISTORICO.length - 1];
+  document.getElementById('cmpSelic').value  = selicAtual;
+  document.getElementById('opSelic').value   = selicAtual;
+  document.getElementById('algSelic').value  = selicAtual;
+  document.getElementById('isSelic').value    = selicAtual;
+
+  syncTaxas('anual');
+  calcular();
+  calcComparativo();
+  calcOportunidade();
+  calcAluguel();
+  calcQuitar();
+  // InvestSacar: inicia previews
+  wizPreview1();
+  wizPreview2();
+  wizPreview3();
+})();
+</script>
+</body>
+</html>
